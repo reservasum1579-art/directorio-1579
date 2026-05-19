@@ -39,9 +39,9 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
         is_active: true,
       });
       onSuccess(newTask as MaintenanceTask);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating task:', error);
-      alert('Hubo un error al crear la tarea. Revisa la consola.');
+      alert(`Hubo un error al crear la tarea: ${error.message || JSON.stringify(error)}`);
     } finally {
       setLoading(false);
     }
