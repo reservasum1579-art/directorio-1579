@@ -27,7 +27,7 @@ export const marketplaceService = {
           avatar_url: null,
         },
         marketplace_images: [{
-          id: 'img1', post_id: '1', image_url: 'https://images.unsplash.com/photo-1590496739660-f463c78491f2?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
+          id: 'img1', post_id: '1', image_url: 'https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
         }],
       },
       {
@@ -72,7 +72,9 @@ export const marketplaceService = {
           last_name: 'Electricista',
           avatar_url: null,
         },
-        marketplace_images: [],
+        marketplace_images: [{
+          id: 'img3', post_id: '3', image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
+        }],
       },
       {
         id: '4',
