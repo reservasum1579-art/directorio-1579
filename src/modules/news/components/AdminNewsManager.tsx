@@ -1,0 +1,175 @@
+'use client';
+
+import { Plus, Newspaper, Megaphone, FileText, Send, Trash2, Edit } from 'lucide-react';
+import type { Announcement } from '../types/news.types';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { NewsEditorModal } from './NewsEditorModal';
+import { newsAdminService } from '../services/news.admin.service';
+
+interface AdminNewsManagerProps {
+  initialNews: Announcement[];
+}
+
+export function AdminNewsManager({ initialNews }: AdminNewsManagerProps) {
+  const [news, setNews] = useState(initialNews);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+
+  const handleCreate = () => {
+    setEditingAnnouncement(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (announcement: Announcement) => {
+    setEditingAnnouncement(announcement);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (data: Partial<Announcement>) => {
+    try {
+      await newsAdminService.saveAnnouncement(data);
+      
+      if (editingAnnouncement) {
+        setNews(prev => prev.map(n => n.id === editingAnnouncement.id ? { ...n, ...data } as Announcement : n));
+      } else {
+        const newAnnouncement: Announcement = {
+          id: Math.random().toString(36).substr(2, 9),
+          building_id: 'default',
+          author_id: 'admin',
+          title: data.title || '',
+          content: data.content || '',
+          is_important: data.is_important || false,
+          status: data.status || 'draft',
+          published_at: data.published_at || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          profiles: { first_name: 'Admin', last_name: 'Directorio', avatar_url: null }
+        };
+        setNews(prev => [newAnnouncement, ...prev]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('¿Estás seguro de eliminar este comunicado?')) {
+      setNews(prev => prev.filter(n => n.id !== id));
+    }
+  };
+
+  return (
+    <div className="space-y-8 animate-fade-in pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="font-display text-3xl font-bold text-text-primary mb-2">
+            Gestión de Noticias
+          </h2>
+          <p className="text-text-secondary">
+            Publicá comunicados oficiales y novedades para los residentes.
+          </p>
+        </div>
+        <button 
+          onClick={handleCreate}
+          className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-600/20 active:scale-95 shrink-0"
+        >
+          <Plus className="h-5 w-5" />
+          Nueva Noticia
+        </button>
+      </header>
+
+      <NewsEditorModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        editingAnnouncement={editingAnnouncement}
+      />
+
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card padding="md" className="flex items-center gap-4 bg-primary-500/5 border-primary-500/10">
+          <div className="h-10 w-10 rounded-lg bg-primary-500/10 flex items-center justify-center text-primary-500">
+            <Megaphone className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Publicadas</p>
+            <p className="text-xl font-display font-bold text-text-primary">{news.filter(n => n.status === 'published').length}</p>
+          </div>
+        </Card>
+        <Card padding="md" className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-lg bg-warning-500/10 flex items-center justify-center text-warning-500">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Borradores</p>
+            <p className="text-xl font-display font-bold text-text-primary">{news.filter(n => n.status === 'draft').length}</p>
+          </div>
+        </Card>
+        <Card padding="md" className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-lg bg-error-500/10 flex items-center justify-center text-error-500">
+            <Newspaper className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Urgentes</p>
+            <p className="text-xl font-display font-bold text-text-primary">{news.filter(n => n.is_important).length}</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* News List */}
+      <div className="glass-panel rounded-2xl overflow-hidden border border-border">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-background-warm text-text-muted font-bold uppercase text-[10px] tracking-wider">
+            <tr>
+              <th className="px-6 py-4">Comunicado</th>
+              <th className="px-6 py-4">Estado</th>
+              <th className="px-6 py-4">Fecha</th>
+              <th className="px-6 py-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border-light">
+            {news.map(item => (
+              <tr key={item.id} className="hover:bg-background-warm transition-colors">
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-2 w-2 rounded-full ${item.is_important ? 'bg-error-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-success-500'}`} />
+                    <div>
+                      <p className="font-bold text-text-primary leading-tight">{item.title}</p>
+                      <p className="text-[10px] text-text-muted mt-0.5 uppercase">{item.is_important ? 'Urgente' : 'Normal'}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-5">
+                  <Badge variant={item.status === 'published' ? 'success' : 'warning'} size="sm">
+                    {item.status === 'published' ? 'Publicado' : 'Borrador'}
+                  </Badge>
+                </td>
+                <td className="px-6 py-5 text-text-secondary">
+                  {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'Pendiente'}
+                </td>
+                <td className="px-6 py-5 text-right">
+                  <div className="flex justify-end gap-1">
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="p-2 hover:bg-primary-50 rounded-lg text-text-muted hover:text-primary-600 transition-all"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 hover:bg-error-50 rounded-lg text-text-muted hover:text-error-600 transition-all"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* 
+ * =========================================
+ * MODERN DARK NEON THEME (DELICATE)
+ * =========================================
+ */
+
+@theme {
+  /* Modern Geometric Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Outfit", "Inter", sans-serif;
+
+  /* Dark Theme Core Colors */
+  --color-background: #09090b; /* Very deep zinc/black */
+  --color-background-warm: #18181b; /* Slightly lighter for contrast panels */
+  --color-surface: rgba(24, 24, 27, 0.6); /* Translucent dark surface */
+  
+  /* Borders */
+  --color-border: #27272a; /* Zinc 800 */
+  --color-border-light: #3f3f46; /* Zinc 700 */
+
+  /* Text Colors */
+  --color-text-primary: #f4f4f5; /* Zinc 100 */
+  --color-text-secondary: #a1a1aa; /* Zinc 400 */
+  --color-text-muted: #71717a; /* Zinc 500 */
+
+  /* Primary: Neon Cyan/Blue (Delicate) */
+  --color-primary-50: #082f49; /* Darkest cyan background */
+  --color-primary-100: #0c4a6e;
+  --color-primary-200: #0369a1;
+  --color-primary-300: #0284c7;
+  --color-primary-400: #0ea5e9;
+  --color-primary-500: #38bdf8; /* Core Neon Cyan */
+  --color-primary-600: #7dd3fc;
+  --color-primary-700: #bae6fd;
+  --color-primary-800: #e0f2fe;
+  --color-primary-900: #f0f9ff;
+
+  /* Accent: Delicate Neon Purple */
+  --color-accent-50: #2e1065;
+  --color-accent-100: #4c1d95;
+  --color-accent-500: #c084fc; /* Core Neon Purple */
+  --color-accent-700: #e9d5ff;
+
+  /* Semantic Status Colors (Adjusted for Dark Mode) */
+  --color-success-50: #022c22;
+  --color-success-500: #34d399; /* Neon Emerald */
+  --color-success-600: #10b981;
+  --color-success-700: #059669;
+
+  --color-error-50: #4c0519;
+  --color-error-500: #fb7185; /* Neon Rose/Red */
+  --color-error-700: #e11d48;
+
+  --color-warning-50: #451a03;
+  --color-warning-500: #fbbf24; /* Neon Amber */
+  --color-warning-700: #d97706;
+
+  --color-info-50: #082f49;
+  --color-info-500: #38bdf8;
+  --color-info-700: #0284c7;
+
+  /* Glowing Neon Shadows */
+  --shadow-neon-primary: 0 0 10px rgba(56, 189, 248, 0.3), 0 0 20px rgba(56, 189, 248, 0.1);
+  --shadow-neon-accent: 0 0 10px rgba(192, 132, 252, 0.3), 0 0 20px rgba(192, 132, 252, 0.1);
+  --shadow-neon-success: 0 0 10px rgba(52, 211, 153, 0.3);
+  --shadow-neon-error: 0 0 10px rgba(251, 113, 133, 0.3);
+  
+  /* Dark mode specific UI shadows */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8);
+
+  /* Border Radii (more rounded for modern feel) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+    /* Subtle ambient glows in the background corners */
+    background-image: 
+      radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.08), transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(192, 132, 252, 0.08), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  /* Custom subtle scrollbar for dark mode */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-light rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted;
+  }
+}
+
+/* 
+ * =========================================
+ * NEON UTILITIES & EFFECTS
+ * =========================================
+ */
+@layer utilities {
+  /* Advanced glassmorphism for dark mode */
+  .glass-panel {
+    @apply bg-surface backdrop-blur-xl border border-border/50 shadow-card;
+  }
+  
+  .glass-panel-hover {
+    @apply transition-all duration-300 hover:bg-surface/80 hover:border-primary-500/30 hover:shadow-neon-primary;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  }
+  
+  .text-glow-accent {
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+  }
+
+  /* Interactive Elements */
+  .btn-neon {
+    @apply relative overflow-hidden transition-all duration-300;
+  }
+  
+  .btn-neon::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full;
+  }
+  
+  .btn-neon:hover::after {
+    @apply opacity-100 translate-x-full duration-700 ease-out;
+  }
+
+  /* Stitch Design Neon Borders */
+  .neon-border-cyan {
+    @apply border-b-2 border-primary-500 shadow-neon-primary;
+  }
+  .neon-border-violet {
+    @apply border-b-2 border-accent-500 shadow-neon-accent;
+  }
+  .neon-border-lime {
+    @apply border-b-2 border-success-500 shadow-neon-success;
+  }
+  .neon-border-warning {
+    @apply border-b-2 border-warning-500;
+    box-shadow: 0 4px 12px -2px rgba(251, 191, 36, 0.3);
+  }
+}
+
+/* 
+ * =========================================
+ * ANIMATIONS
+ * =========================================
+ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
