@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardTitle } from '@/components/ui/Card';
 import Link from 'next/link';
-import { Users, Building2, Shield, Settings, FileEdit, Newspaper, Receipt } from 'lucide-react';
+import { Users, Building2, Shield, Settings, FileEdit, Newspaper, Receipt, Wrench } from 'lucide-react';
 
 const adminModules = [
   {
@@ -44,6 +44,13 @@ const adminModules = [
     href: '/admin/news',
     icon: Newspaper,
     color: 'text-error-600 bg-error-50',
+  },
+  {
+    title: 'Mantenimiento',
+    description: 'Gestión de tareas preventivas e incidentes del edificio.',
+    href: '/admin/maintenance',
+    icon: Wrench,
+    color: 'text-purple-600 bg-purple-50',
   },
   {
     title: 'Configuración',
