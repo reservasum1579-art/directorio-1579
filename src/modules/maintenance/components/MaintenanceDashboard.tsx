@@ -17,12 +17,14 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { DEFAULT_BUILDING_ID } from '@/lib/constants';
+import { NewTaskModal } from './NewTaskModal';
 
 export function MaintenanceDashboard() {
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
   const [incidents, setIncidents] = useState<MaintenanceIncident[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'preventive' | 'corrective'>('preventive');
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -72,7 +74,11 @@ export function MaintenanceDashboard() {
           <Button variant="outline" icon={<AlertTriangle className="w-4 h-4" />}>
             Reportar Incidente
           </Button>
-          <Button variant="primary" icon={<Plus className="w-4 h-4" />}>
+          <Button 
+            variant="primary" 
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsNewTaskOpen(true)}
+          >
             Nueva Tarea
           </Button>
         </div>
@@ -248,6 +254,17 @@ export function MaintenanceDashboard() {
           </div>
         )}
       </Card>
+
+      {isNewTaskOpen && (
+        <NewTaskModal
+          buildingId={DEFAULT_BUILDING_ID}
+          onClose={() => setIsNewTaskOpen(false)}
+          onSuccess={(newTask) => {
+            setTasks([...tasks, newTask]);
+            setIsNewTaskOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

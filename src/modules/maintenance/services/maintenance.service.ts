@@ -5,12 +5,16 @@ export const maintenanceService = {
   // Tasks
   async getTasks(buildingId: string): Promise<MaintenanceTask[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('maintenance_tasks')
       .select('*')
-      .eq('building_id', buildingId)
       .order('next_due_date', { ascending: true });
+      
+    if (buildingId) {
+      query = query.eq('building_id', buildingId);
+    }
 
+    const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
@@ -30,15 +34,19 @@ export const maintenanceService = {
   // Incidents
   async getIncidents(buildingId: string): Promise<MaintenanceIncident[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('maintenance_incidents')
       .select(`
         *,
         reported_by:profiles!reported_by(first_name, last_name)
       `)
-      .eq('building_id', buildingId)
       .order('created_at', { ascending: false });
 
+    if (buildingId) {
+      query = query.eq('building_id', buildingId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
