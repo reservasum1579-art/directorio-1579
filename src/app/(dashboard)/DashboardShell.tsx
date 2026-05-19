@@ -48,6 +48,7 @@ export function DashboardShell({ profile: initialProfile, isAdmin, unit, childre
           lastName={profile?.last_name}
           avatarUrl={profile?.avatar_url}
           unit={unit}
+          isAdmin={isAdmin}
         />
 
         <main className="flex-1 px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6">

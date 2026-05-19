@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Shield, Home } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils';
 import { NotificationCenter } from './NotificationCenter';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
   title?: string;
@@ -14,6 +16,7 @@ interface HeaderProps {
   avatarUrl?: string | null;
   notificationCount?: number;
   unit?: string;
+  isAdmin?: boolean;
 }
 
 export function Header({
@@ -24,8 +27,11 @@ export function Header({
   avatarUrl,
   notificationCount = 2, // Hardcoded unread for demo
   unit,
+  isAdmin = false,
 }: HeaderProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const pathname = usePathname();
+  const isCurrentlyAdminRoute = pathname.startsWith('/admin');
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-border-light">
@@ -60,6 +66,20 @@ export function Header({
 
         {/* Right: Notifications + Avatar */}
         <div className="flex items-center gap-3 shrink-0">
+          {isAdmin && (
+            <Link
+              href={isCurrentlyAdminRoute ? '/' : '/admin'}
+              className="p-2 rounded-[--radius-md] text-text-secondary hover:bg-background-warm hover:text-text-primary md:hidden flex items-center justify-center"
+              title={isCurrentlyAdminRoute ? "Volver a Portal" : "Panel Admin"}
+            >
+              {isCurrentlyAdminRoute ? (
+                <Home className="h-5 w-5 text-primary-700" strokeWidth={1.8} />
+              ) : (
+                <Shield className="h-5 w-5 text-primary-700" strokeWidth={1.8} />
+              )}
+            </Link>
+          )}
+
           <div className="relative">
             <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
