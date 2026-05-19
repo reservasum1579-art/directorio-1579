@@ -13,7 +13,42 @@ export const maintenanceService = {
   async getTasks(buildingId: string): Promise<MaintenanceTask[]> {
     if (typeof window === 'undefined') return [];
     const stored = localStorage.getItem(STORAGE_KEY_TASKS);
-    if (!stored) return [];
+    if (!stored) {
+      const defaultTasks: MaintenanceTask[] = [
+        {
+          id: generateId(),
+          building_id: 'demo-building-id',
+          title: 'Limpieza de tanques de agua',
+          description: 'Vaciado, cepillado y desinfección de tanques superior e inferior.',
+          category: 'Sanidad',
+          frequency: 'Anual',
+          custom_interval_days: 365,
+          vendor: 'Aguas Claras SRL',
+          next_due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          alert_days_before: 15,
+          estimated_cost: 150000,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: generateId(),
+          building_id: 'demo-building-id',
+          title: 'Fumigación general',
+          description: 'Aplicación en palieres, subsuelo y terraza.',
+          category: 'Sanidad',
+          frequency: 'Quincenal (15 días)',
+          custom_interval_days: 15,
+          vendor: 'ControlPlagas BA',
+          next_due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          alert_days_before: 3,
+          estimated_cost: 45000,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        }
+      ];
+      localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(defaultTasks));
+      return defaultTasks;
+    }
     
     let tasks: MaintenanceTask[] = JSON.parse(stored);
     

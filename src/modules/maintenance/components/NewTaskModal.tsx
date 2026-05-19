@@ -18,7 +18,7 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
   const [formData, setFormData] = useState({
     title: '',
     category: '',
-    frequency: 'monthly',
+    frequency: 'Mensual',
     vendor: '',
     estimated_cost: '',
     alert_days_before: 7,
@@ -94,10 +94,15 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
                 value={formData.frequency}
                 onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
               >
-                <option value="monthly">Mensual</option>
-                <option value="quarterly">Trimestral</option>
-                <option value="biannual">Semestral</option>
-                <option value="annual">Anual</option>
+                <option value="Quincenal (15 días)">Quincenal (15 días)</option>
+                <option value="Mensual">Mensual</option>
+                <option value="Bimestral">Bimestral</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+                <option value="Cada 2 años">Cada 2 años</option>
+                <option value="Cada 5 años">Cada 5 años</option>
+                <option value="Cada 6 años">Cada 6 años</option>
               </select>
             </div>
           </div>
