@@ -177,7 +177,7 @@ export function AdminSumDashboard({ initialPending }: AdminSumDashboardProps) {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <p className="text-sm font-bold text-text-primary">{formatShortDate(res.reservation_date)}</p>
-                      <Badge variant="outline" className="text-[9px] uppercase tracking-tighter mt-1 bg-slate-100">
+                      <Badge variant="default" className="text-[9px] uppercase tracking-tighter">
                         {res.shift_type === 'day' ? 'Mañana' : 'Noche'}
                       </Badge>
                     </td>
