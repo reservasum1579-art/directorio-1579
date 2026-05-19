@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/client';
-const supabase = createClient();
 import { MaintenanceTask, MaintenanceIncident, MaintenanceExecution } from '../types/maintenance.types';
 
 export const maintenanceService = {
   // Tasks
   async getTasks(buildingId: string): Promise<MaintenanceTask[]> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_tasks')
       .select('*')
@@ -16,6 +16,7 @@ export const maintenanceService = {
   },
 
   async createTask(task: Partial<MaintenanceTask>): Promise<MaintenanceTask> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_tasks')
       .insert(task)
@@ -28,6 +29,7 @@ export const maintenanceService = {
 
   // Incidents
   async getIncidents(buildingId: string): Promise<MaintenanceIncident[]> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_incidents')
       .select(`
@@ -42,6 +44,7 @@ export const maintenanceService = {
   },
 
   async createIncident(incident: Partial<MaintenanceIncident>): Promise<MaintenanceIncident> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_incidents')
       .insert(incident)
@@ -53,6 +56,7 @@ export const maintenanceService = {
   },
 
   async updateIncidentStatus(id: string, status: string, additionalData?: Partial<MaintenanceIncident>): Promise<MaintenanceIncident> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_incidents')
       .update({ status, ...additionalData })
@@ -66,6 +70,7 @@ export const maintenanceService = {
   
   // Executions
   async recordExecution(execution: Partial<MaintenanceExecution>): Promise<MaintenanceExecution> {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('maintenance_executions')
       .insert(execution)
