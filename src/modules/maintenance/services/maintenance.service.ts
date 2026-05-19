@@ -21,13 +21,27 @@ export const maintenanceService = {
 
   async createTask(task: Partial<MaintenanceTask>): Promise<MaintenanceTask> {
     const supabase = createClient();
+    
+    // Auto-asignar el primer edificio si no hay un building_id real configurado
+    if (!task.building_id || task.building_id === '00000000-0000-0000-0000-000000000000') {
+      const { data: buildings } = await supabase.from('buildings').select('id').limit(1);
+      if (buildings && buildings.length > 0) {
+        task.building_id = buildings[0].id;
+      } else {
+        throw new Error('No hay edificios registrados en el sistema para asociar la tarea.');
+      }
+    }
+
     const { data, error } = await supabase
       .from('maintenance_tasks')
       .insert(task)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Error:', error);
+      throw error;
+    }
     return data;
   },
 
