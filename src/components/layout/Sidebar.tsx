@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -42,6 +43,7 @@ const adminNav = [
   { label: 'Gestión Expensas', href: '/admin/expenses', icon: Receipt },
   { label: 'Moderación', href: '/admin/marketplace', icon: FileEdit },
   { label: 'Noticias', href: '/admin/news', icon: Newspaper },
+  { label: 'Mantenimiento', href: '/admin/maintenance', icon: Wrench },
   { label: 'Configuración', href: '/admin/settings', icon: Settings },
 ];
 
