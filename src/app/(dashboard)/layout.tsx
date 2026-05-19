@@ -24,7 +24,7 @@ export default async function DashboardLayout({
     role: 'resident'
   };
 
-  const isAdmin = false;
+  const isAdmin = true;
 
   return (
     <DashboardShell
