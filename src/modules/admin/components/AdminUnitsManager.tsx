@@ -18,6 +18,7 @@ import {
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Portal } from '@/components/Portal';
 import { unitsAdminService, UnitDetail } from '../services/units.admin.service';
 
 export function AdminUnitsManager() {
@@ -184,26 +185,26 @@ export function AdminUnitsManager() {
         </div>
       </Card>
 
-      {/* Detail Modal (Simulation) */}
-      {selectedUnit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-          <Card className="w-full max-w-2xl overflow-hidden shadow-2xl animate-scale-in" padding="none">
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-primary-600 text-white">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-xl">Ficha Unidad {selectedUnit.floor}{selectedUnit.unit}</h3>
-                  <p className="text-xs text-white/70">Detalle de ocupantes y activos declarados</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedUnit(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                <X className="h-5 w-5" />
-              </button>
+{selectedUnit && (
+  <Portal>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+      <Card className="w-full max-w-2xl overflow-hidden shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col" padding="none">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-primary-600 text-white shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <Building2 className="h-6 w-6" />
             </div>
+            <div>
+              <h3 className="font-display font-bold text-xl">Ficha Unidad {selectedUnit.floor}{selectedUnit.unit}</h3>
+              <p className="text-xs text-white/70">Detalle de ocupantes y activos declarados</p>
+            </div>
+          </div>
+          <button onClick={() => setSelectedUnit(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
             
-            <div className="p-8 space-y-8">
+            <div className="p-8 space-y-8 overflow-y-auto flex-grow">
               {/* Occupants */}
               <section className="space-y-4">
                 <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
@@ -252,7 +253,7 @@ export function AdminUnitsManager() {
                   {selectedUnit.vehicles.length > 0 ? (
                     <div className="space-y-2">
                       {selectedUnit.vehicles.map((v, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                        <div key={i} className="p-3 rounded-lg bg-blue-500/5 border border-amber-500/10">
                           <p className="text-sm font-bold text-text-primary">{v.brand} {v.model}</p>
                           <p className="text-[10px] font-mono text-primary-600 mt-1 uppercase tracking-wider">{v.plate}</p>
                         </div>
@@ -265,7 +266,7 @@ export function AdminUnitsManager() {
               </div>
             </div>
 
-            <div className="px-8 py-4 bg-background-warm border-t border-border flex justify-end gap-3">
+            <div className="px-8 py-4 bg-background-warm border-t border-border flex justify-end gap-3 shrink-0">
               <Button variant="secondary" onClick={() => setSelectedUnit(null)}>Cerrar</Button>
               <Button>Editar Ficha</Button>
             </div>

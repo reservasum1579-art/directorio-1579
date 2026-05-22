@@ -55,7 +55,7 @@ export default function DashboardPage() {
   ];
 
   const userStatus = {
-    has_debt: true,
+    has_debt: false,
     next_reservation: {
       date: '2026-05-16',
       shift: 'Noche',

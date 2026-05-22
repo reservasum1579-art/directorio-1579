@@ -17,9 +17,14 @@ export default function SumPage() {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const data = await sumService.getMyReservations(profile.id);
-      setInitialHistory(data);
-      setLoading(false);
+      try {
+        const data = await sumService.getMyReservations(profile.id);
+        setInitialHistory(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchHistory();
   }, []);

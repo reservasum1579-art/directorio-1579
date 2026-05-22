@@ -226,14 +226,14 @@ export function AdminSumDashboard({ initialPending }: AdminSumDashboardProps) {
       {/* Modal Ajustar Tarifas */}
       {isPriceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-          <Card className="w-full max-w-sm border-primary-500/20 bg-surface shadow-2xl animate-scale-in" padding="none">
-            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-primary-600 text-white">
+          <Card className="w-full max-w-sm border-primary-500/20 bg-surface shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden" padding="none">
+            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-primary-600 text-white shrink-0">
               <h3 className="font-display font-bold text-lg">Ajustar Tarifas SUM</h3>
               <button onClick={() => setIsPriceModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
                 <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 overflow-y-auto flex-grow">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Precio Turno Mañana</label>
                 <div className="relative">
@@ -259,7 +259,7 @@ export function AdminSumDashboard({ initialPending }: AdminSumDashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="px-6 py-5 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3">
+            <div className="px-6 py-5 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
               <Button variant="ghost" onClick={() => setIsPriceModalOpen(false)}>Cancelar</Button>
               <Button 
                 onClick={() => setIsPriceModalOpen(false)} 

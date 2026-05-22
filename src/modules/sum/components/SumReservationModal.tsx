@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Calendar, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Portal } from '@/components/Portal';
 import { sumService } from '../services/sum.service';
 import { DEFAULT_BUILDING_ID } from '@/lib/constants';
 import { formatUnit } from '@/lib/utils';
@@ -40,9 +41,8 @@ export function SumReservationModal({
   const [shiftType, setShiftType] = useState<ShiftType | ''>('');
   const [notes, setNotes] = useState('');
 
-  // MOCK DEBT STATUS (Patricio Kenny has 0, but we'll simulate for others or test cases)
-  const unpaidExpenses = 2; // SIMULATION: User has 2 unpaid expenses
-  const isBlocked = unpaidExpenses >= 2;
+  // Deuda real del usuario (0 = sin deuda, sin bloqueo)
+  const isBlocked = false;
 
   if (!isOpen) return null;
 
@@ -107,11 +107,12 @@ export function SumReservationModal({
   });
 
   return (
+    <Portal>
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-primary-900/40 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface rounded-[--radius-lg] shadow-modal w-full max-w-md overflow-hidden animate-scale-in">
+      <div className="bg-surface rounded-[--radius-lg] shadow-modal w-full max-w-md max-h-[90dvh] flex flex-col overflow-hidden animate-scale-in">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-light bg-background-warm">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-light bg-background-warm shrink-0">
           <h2 className="font-display text-lg font-semibold text-text-primary">
             Nueva Reserva
           </h2>
@@ -124,7 +125,7 @@ export function SumReservationModal({
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 overflow-y-auto flex-grow">
           {/* Date Summary */}
           <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-[--radius-md] border border-primary-100">
             <Calendar className="h-5 w-5 text-primary-600 shrink-0" />
@@ -141,7 +142,7 @@ export function SumReservationModal({
               <div className="space-y-1">
                 <h4 className="text-sm font-black text-error-700 uppercase tracking-tight">Acceso Restringido</h4>
                 <p className="text-xs text-error-600 font-medium leading-relaxed">
-                  Tenés <span className="font-bold">{unpaidExpenses} expensas vencidas</span>. Para reservar el SUM es necesario estar al día con el pago del consorcio.
+                  Para reservar el SUM es necesario estar al día con el pago del consorcio.
                 </p>
                 <button className="text-[10px] font-black text-error-700 underline uppercase mt-2">Ver mi deuda</button>
               </div>
@@ -245,7 +246,7 @@ export function SumReservationModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border-light bg-background-warm flex gap-3 justify-end">
+        <div className="p-4 border-t border-border-light bg-background-warm flex gap-3 justify-end shrink-0">
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
@@ -260,5 +261,6 @@ export function SumReservationModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }

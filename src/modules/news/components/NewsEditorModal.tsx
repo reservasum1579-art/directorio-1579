@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Send, Save, AlertCircle, Eye, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Portal } from '@/components/Portal';
 import type { Announcement } from '../types/news.types';
 
 interface NewsEditorModalProps {
@@ -36,11 +37,11 @@ export function NewsEditorModal({ isOpen, onClose, onSave, editingAnnouncement }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in">
+    <Portal><div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
           <h2 className="font-display text-lg font-bold text-text-primary">
             {editingAnnouncement ? 'Editar Comunicado' : 'Nuevo Comunicado Oficial'}
           </h2>
@@ -53,7 +54,7 @@ export function NewsEditorModal({ isOpen, onClose, onSave, editingAnnouncement }
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 space-y-6 overflow-y-auto flex-grow">
           <div className="space-y-2">
             <label className="text-sm font-bold text-text-primary">Título del Anuncio</label>
             <input 
@@ -125,7 +126,7 @@ export function NewsEditorModal({ isOpen, onClose, onSave, editingAnnouncement }
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border bg-background-warm flex items-center justify-between gap-3">
+        <div className="px-6 py-4 border-t border-border bg-background-warm flex items-center justify-between gap-3 shrink-0">
           <Button variant="secondary" onClick={() => handleSubmit('draft')} className="gap-2">
             <Save className="h-4 w-4" /> Guardar Borrador
           </Button>

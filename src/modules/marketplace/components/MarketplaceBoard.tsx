@@ -141,17 +141,17 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
 
       {/* Modal de Nuevo Aviso */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <Card className="w-full max-w-lg border-primary-500/20 bg-surface shadow-2xl animate-scale-in my-auto" padding="none">
-            <form onSubmit={handleSubmit}>
-              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <Card className="w-full max-w-lg border-primary-500/20 bg-surface shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden" padding="none">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between shrink-0">
                 <h3 className="font-display font-bold text-xl text-primary-500">Publicar en Marketplace</h3>
                 <button type="button" onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto flex-grow">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-1">Título del Aviso</label>
                   <input 
@@ -242,7 +242,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                 </div>
               </div>
 
-              <div className="px-6 py-4 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3">
+              <div className="px-6 py-4 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
                 <Button type="submit" disabled={isSubmitting} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[120px]">
                   {isSubmitting ? 'Publicando...' : 'Publicar Ahora'}
@@ -255,68 +255,68 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
 
       {/* Modal de Contacto (Simulación Email) */}
       {isContactModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <Card className="w-full max-w-md border-primary-500/20 bg-surface shadow-2xl animate-scale-in my-auto" padding="none">
-            {isEmailSent ? (
-              <div className="p-10 text-center space-y-4 animate-scale-in">
-                <div className="h-20 w-20 bg-success-500/10 text-success-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="h-10 w-10 animate-bounce" />
+        <Portal>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+            <Card className="w-full max-w-md border-primary-500/20 bg-surface shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col overflow-none" padding="none">
+              {isEmailSent ? (
+                <div className="p-10 text-center space-y-4 animate-scale-in overflow-y-auto flex-grow">
+                  <div className="h-20 w-20 bg-success-500/10 text-success-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="h-10 w-10 animate-bounce" />
+                  </div>
+                  <h3 className="font-display font-bold text-2xl text-white">¡Mensaje Enviado!</h3>
+                  <p className="text-text-secondary text-sm">
+                    Le enviamos un email a <span className="text-primary-400 font-semibold">{selectedPost?.profiles?.first_name}</span> con tus datos de contacto.
+                  </p>
+                  <div className="pt-4 text-[10px] text-text-muted uppercase tracking-widest font-bold opacity-50"></div>
                 </div>
-                <h3 className="font-display font-bold text-2xl text-white">¡Mensaje Enviado!</h3>
-                <p className="text-text-secondary text-sm">
-                  Le enviamos un email a <span className="text-primary-400 font-semibold">{selectedPost?.profiles?.first_name}</span> con tus datos de contacto.
-                </p>
-                <div className="pt-4 text-[10px] text-text-muted uppercase tracking-widest font-bold opacity-50">
-                  Próximamente: Contacto directo por WhatsApp
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleContactSubmit}>
-                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-primary-500/5">
-                  <h3 className="font-display font-bold text-lg text-primary-400">Interés en: {selectedPost?.title}</h3>
-                  <button type="button" onClick={() => setIsContactModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+              ) : (
+                <form onSubmit={handleContactSubmit} className="flex flex-col flex-grow overflow-hidden">
+                  <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-primary-500/5 shrink-0">
+                    <h3 className="font-display font-bold text-lg text-primary-400">Interés en: {selectedPost?.title}</h3>
+                    <button type="button" onClick={() => setIsContactModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
 
-                <div className="p-6 space-y-5">
-                  <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10">
-                    <div className="h-10 w-10 rounded-full bg-primary-900 flex items-center justify-center text-primary-400 font-bold">
-                      {selectedPost?.profiles?.first_name.charAt(0)}
+                  <div className="p-6 space-y-5 overflow-y-auto flex-grow">
+                    <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10">
+                      <div className="h-10 w-10 rounded-full bg-primary-900 flex items-center justify-center text-primary-400 font-bold">
+                        {selectedPost?.profiles?.first_name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-muted font-bold uppercase tracking-tighter">Vendedor</p>
+                        <p className="text-sm font-semibold text-white">{selectedPost?.profiles?.first_name} {selectedPost?.profiles?.last_name}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-text-muted font-bold uppercase tracking-tighter">Vendedor</p>
-                      <p className="text-sm font-semibold text-white">{selectedPost?.profiles?.first_name} {selectedPost?.profiles?.last_name}</p>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Tu Mensaje</label>
+                      <textarea
+                        required
+                        placeholder={`Hola ${selectedPost?.profiles?.first_name}, me interesa. ¿Sigue disponible?`}
+                        className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-white h-32 resize-none"
+                      />
+                    </div>
+
+                    <div className="bg-info-500/5 border border-info-500/10 p-3 rounded-lg flex gap-3 items-start">
+                      <MailIcon className="h-4 w-4 text-info-400 shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-info-200/70 leading-relaxed">
+                        Al enviar, el vecino recibirá una notificación por email con tu nombre, unidad y datos de contacto para responderte.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Tu Mensaje</label>
-                    <textarea 
-                      required
-                      placeholder={`Hola ${selectedPost?.profiles?.first_name}, me interesa. ¿Sigue disponible?`}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-white h-32 resize-none"
-                    />
+                  <div className="px-6 py-4 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
+                    <Button type="button" variant="ghost" onClick={() => setIsContactModalOpen(false)}>Cancelar</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[140px] gap-2">
+                      {isSubmitting ? 'Enviando...' : <><Send className="h-4 w-4" /> Enviar Interés</>}
+                    </Button>
                   </div>
-                  
-                  <div className="bg-info-500/5 border border-info-500/10 p-3 rounded-lg flex gap-3 items-start">
-                    <MailIcon className="h-4 w-4 text-info-400 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-info-200/70 leading-relaxed">
-                      Al enviar, el vecino recibirá una notificación por email con tu nombre, unidad y datos de contacto para responderte.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-6 py-4 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3">
-                  <Button type="button" variant="ghost" onClick={() => setIsContactModalOpen(false)}>Cancelar</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[140px] gap-2">
-                    {isSubmitting ? 'Enviando...' : <><Send className="h-4 w-4" /> Enviar Interés</>}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Card>
-        </div>
+                </form>
+              )}
+            </Card>
+          </div>
+        </Portal>
       )}
 
       {/* Filters (Mock) */}

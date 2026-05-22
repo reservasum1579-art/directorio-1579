@@ -52,7 +52,7 @@ export default function ExpensesPage() {
     month: 'Mayo 2026',
     amount: 145200.50,
     dueDate: '2026-05-15',
-    status: 'pending', // pending, paid
+    status: 'paid', // pending, paid
     unit: '6° C',
     pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
   };
@@ -140,12 +140,16 @@ export default function ExpensesPage() {
                 <div className="p-8 bg-gradient-to-br from-surface to-background-warm">
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-10">
                     <div>
-                      <Badge variant="warning" className="mb-4 animate-pulse px-3 py-1 text-xs">Pago Pendiente</Badge>
+                      <Badge variant={currentExpense.status === 'pending' ? 'warning' : 'success'} className="mb-4 px-3 py-1 text-xs">
+                        {currentExpense.status === 'pending' ? 'Pago Pendiente' : 'Al Día'}
+                      </Badge>
                       <h2 className="text-5xl font-display font-black text-text-primary tracking-tight">
                         ${currentExpense.amount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                       </h2>
                       <p className="text-text-muted text-sm mt-2 flex items-center gap-2">
-                        Liquidación {currentExpense.month} • <span className="text-error-500 font-bold">Vence en 3 días</span>
+                        Liquidación {currentExpense.month} • <span className={currentExpense.status === 'pending' ? "text-error-500 font-bold" : "text-success-500 font-bold"}>
+                          {currentExpense.status === 'pending' ? 'Vence en 3 días' : 'Pagado'}
+                        </span>
                       </p>
                     </div>
                     <div className="bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/60 text-center min-w-[140px]">
@@ -462,10 +466,10 @@ export default function ExpensesPage() {
 
       {/* Modal de Informar Pago */}
       {isPaymentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <Card className="w-full max-w-md border-primary-500/20 bg-surface shadow-2xl animate-scale-in my-auto" padding="none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <Card className="w-full max-w-md border-primary-500/20 bg-surface shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden" padding="none">
             {paymentStep === 'success' ? (
-              <div className="p-10 text-center space-y-4">
+              <div className="p-10 text-center space-y-4 overflow-y-auto flex-grow">
                 <div className="h-20 w-20 bg-success-500/10 text-success-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="h-10 w-10 animate-bounce" />
                 </div>
@@ -476,8 +480,8 @@ export default function ExpensesPage() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handlePaymentSubmit}>
-                <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-primary-600 text-white">
+              <form onSubmit={handlePaymentSubmit} className="flex flex-col flex-grow overflow-hidden">
+                <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-primary-600 text-white shrink-0">
                   <div>
                     <h3 className="font-display font-bold text-lg">Informar Pago</h3>
                     <p className="text-[10px] uppercase font-bold opacity-70 tracking-widest">Unidad {currentExpense.unit}</p>
@@ -487,7 +491,7 @@ export default function ExpensesPage() {
                   </button>
                 </div>
 
-                <div className="p-8 space-y-6">
+                <div className="p-8 space-y-6 overflow-y-auto flex-grow">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Monto Informado</label>
                     <div className="text-2xl font-black text-text-primary bg-background-warm p-4 rounded-xl border border-border-light">
@@ -500,8 +504,8 @@ export default function ExpensesPage() {
                     <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-primary-200 rounded-3xl cursor-pointer hover:bg-primary-50 hover:border-primary-500 transition-all group overflow-hidden">
                       {paymentFile ? (
                         <div className="flex flex-col items-center gap-2">
-                          <CheckCircle2 className="h-10 w-10 text-success-500" />
-                          <p className="text-xs font-bold text-text-primary">{paymentFile.name}</p>
+                           <CheckCircle2 className="h-10 w-10 text-success-500" />
+                           <p className="text-xs font-bold text-text-primary">{paymentFile.name}</p>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -526,7 +530,7 @@ export default function ExpensesPage() {
                   </div>
                 </div>
 
-                <div className="px-6 py-5 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3">
+                <div className="px-6 py-5 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
                   <Button type="button" variant="ghost" onClick={() => setIsPaymentModalOpen(false)}>Cancelar</Button>
                   <Button 
                     type="submit" 

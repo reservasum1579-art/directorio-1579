@@ -11,8 +11,13 @@ export const sumService = {
    */
   _getDemoReservations(): any[] {
     if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem('demo_sum_reservations');
-    if (stored) return JSON.parse(stored);
+    try {
+      const stored = localStorage.getItem('demo_sum_reservations');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error("Error parsing demo_sum_reservations", e);
+      localStorage.removeItem('demo_sum_reservations');
+    }
     
     // Default initial data
     const initial = [

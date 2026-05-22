@@ -50,6 +50,7 @@ export default function RootLayout({
       className={`${outfit.variable} ${inter.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans antialiased">
+        <div id="modal-root"></div>
         {children}
       </body>
     </html>
