@@ -23,6 +23,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isEmailSent, setIsEmailSent] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('Todos');
   
   const [newPost, setNewPost] = useState({
     title: '',
@@ -118,6 +119,9 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
     const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % units.length;
     return units[index];
   };
+
+  const filterCategories = ['Todos', 'Cocheras', 'Varios', 'Servicios', 'Sugerencias'];
+  const filteredPosts = activeFilter === 'Todos' ? posts : posts.filter(post => post.category === activeFilter || (activeFilter === 'Varios' && (!post.category || post.category === 'Varios')));
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -320,34 +324,32 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
         </Portal>
       )}
 
-      {/* Filters (Mock) */}
+      {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button className="glass-panel px-4 py-2 rounded-full text-sm font-semibold border-primary-500/50 bg-primary-500/10 text-primary-400 whitespace-nowrap">
-          Todos los avisos
-        </button>
-        <button className="glass-panel px-4 py-2 rounded-full text-sm font-semibold border-white/5 text-text-secondary hover:text-text-primary whitespace-nowrap transition-colors">
-          Cocheras
-        </button>
-        <button className="glass-panel px-4 py-2 rounded-full text-sm font-semibold border-white/5 text-text-secondary hover:text-text-primary whitespace-nowrap transition-colors">
-          Productos
-        </button>
-        <button className="glass-panel px-4 py-2 rounded-full text-sm font-semibold border-white/5 text-text-secondary hover:text-text-primary whitespace-nowrap transition-colors">
-          Servicios
-        </button>
-        <button className="glass-panel px-4 py-2 rounded-full text-sm font-semibold border-white/5 text-text-secondary hover:text-text-primary whitespace-nowrap transition-colors">
-          Sugerencias
-        </button>
+        {filterCategories.map(cat => (
+          <button 
+            key={cat}
+            onClick={() => setActiveFilter(cat)}
+            className={`glass-panel px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+              activeFilter === cat 
+                ? 'border-primary-500/50 bg-primary-500/10 text-primary-400' 
+                : 'border-white/5 text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {cat === 'Todos' ? 'Todos los avisos' : cat}
+          </button>
+        ))}
       </div>
 
       {/* Grid */}
-      {posts.length === 0 ? (
+      {filteredPosts.length === 0 ? (
         <div className="text-center py-20 glass-panel rounded-xl">
           <Store className="h-12 w-12 text-text-muted mx-auto mb-3" />
-          <p className="text-text-secondary font-medium">No hay avisos publicados en este momento.</p>
+          <p className="text-text-secondary font-medium">No hay avisos publicados en esta categoría.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <article key={post.id} className="group cursor-pointer">
               <div className={`glass-panel rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:bg-white/[0.06] hover:-translate-y-1 ${getCategoryColor(post.category)}`}>
                 
