@@ -24,7 +24,7 @@ export const maintenanceService = {
           frequency: 'Anual',
           custom_interval_days: 365,
           vendor: 'Aguas Claras SRL',
-          next_due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          next_due_date: new Date(Date.now() + 200 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6.6 months
           alert_days_before: 15,
           estimated_cost: 150000,
           is_active: true,
@@ -39,9 +39,39 @@ export const maintenanceService = {
           frequency: 'Quincenal (15 días)',
           custom_interval_days: 15,
           vendor: 'ControlPlagas BA',
-          next_due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          next_due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days
           alert_days_before: 3,
           estimated_cost: 45000,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: generateId(),
+          building_id: 'demo-building-id',
+          title: 'Revisión de ascensores',
+          description: 'Mantenimiento preventivo mensual de ascensores.',
+          category: 'Infraestructura',
+          frequency: 'Mensual',
+          custom_interval_days: 30,
+          vendor: 'Ascensores BA',
+          next_due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 10 days
+          alert_days_before: 5,
+          estimated_cost: 80000,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: generateId(),
+          building_id: 'demo-building-id',
+          title: 'Recarga de matafuegos',
+          description: 'Control y recarga anual de matafuegos en espacios comunes.',
+          category: 'Seguridad',
+          frequency: 'Anual',
+          custom_interval_days: 365,
+          vendor: 'Matafuegos Centro',
+          next_due_date: new Date(Date.now() + 300 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 10 months
+          alert_days_before: 30,
+          estimated_cost: 120000,
           is_active: true,
           created_at: new Date().toISOString(),
         }
@@ -51,6 +81,35 @@ export const maintenanceService = {
     }
     
     let tasks: MaintenanceTask[] = JSON.parse(stored);
+    
+    // Inject missing defaults to ensure user sees them
+    const mustHave = ['Revisión de ascensores', 'Recarga de matafuegos'];
+    let changed = false;
+    mustHave.forEach(title => {
+      if (!tasks.find(t => t.title.toLowerCase().includes(title.toLowerCase()))) {
+        const newTask: MaintenanceTask = {
+          id: generateId(),
+          building_id: 'demo-building-id',
+          title: title,
+          description: 'Mantenimiento programado (' + title + ')',
+          category: 'General',
+          frequency: title === 'Revisión de ascensores' ? 'Mensual' : 'Anual',
+          custom_interval_days: title === 'Revisión de ascensores' ? 30 : 365,
+          vendor: 'Proveedor Asignado',
+          next_due_date: new Date(Date.now() + (title === 'Revisión de ascensores' ? 12 : 300) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          alert_days_before: 5,
+          estimated_cost: 50000,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        };
+        tasks.push(newTask);
+        changed = true;
+      }
+    });
+    
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+    }
     
     // Si queremos simular el orden por next_due_date
     tasks = tasks.sort((a, b) => {

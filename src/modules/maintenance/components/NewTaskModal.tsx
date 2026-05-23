@@ -14,6 +14,7 @@ interface NewTaskModalProps {
 
 export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -21,6 +22,7 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
     vendor: '',
     estimated_cost: '',
     alert_days_before: 7,
+    next_due_date: new Date().toISOString().split('T')[0],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,8 +33,9 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
         building_id: buildingId || '00000000-0000-0000-0000-000000000000',
         title: formData.title,
         category: formData.category,
-        frequency: formData.frequency,
+        frequency: isRecurring ? formData.frequency : 'Única vez',
         vendor: formData.vendor,
+        next_due_date: formData.next_due_date,
         estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : null,
         alert_days_before: formData.alert_days_before,
         is_active: true,
@@ -81,24 +84,52 @@ export function NewTaskModal({ onClose, onSuccess, buildingId }: NewTaskModalPro
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1">Frecuencia</label>
-                  <select
-                    className="w-full p-2 border border-border-light rounded-[--radius-md] bg-surface"
-                    value={formData.frequency}
-                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                  >
-                    <option value="Quincenal (15 días)">Quincenal (15 días)</option>
-                    <option value="Mensual">Mensual</option>
-                    <option value="Bimestral">Bimestral</option>
-                    <option value="Trimestral">Trimestral</option>
-                    <option value="Semestral">Semestral</option>
-                    <option value="Anual">Anual</option>
-                    <option value="Cada 2 años">Cada 2 años</option>
-                    <option value="Cada 5 años">Cada 5 años</option>
-                    <option value="Cada 6 años">Cada 6 años</option>
-                  </select>
+                
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-border-light text-primary-600 focus:ring-primary-500"
+                      checked={isRecurring}
+                      onChange={(e) => setIsRecurring(e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-text-primary">Tarea repetitiva</span>
+                  </label>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1">Fecha Programada (Próxima)</label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full p-2 border border-border-light rounded-[--radius-md] bg-surface"
+                    value={formData.next_due_date}
+                    onChange={(e) => setFormData({ ...formData, next_due_date: e.target.value })}
+                  />
+                </div>
+
+                {isRecurring && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">Frecuencia</label>
+                    <select
+                      className="w-full p-2 border border-border-light rounded-[--radius-md] bg-surface"
+                      value={formData.frequency}
+                      onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                    >
+                      <option value="Quincenal (15 días)">Quincenal (15 días)</option>
+                      <option value="Mensual">Mensual</option>
+                      <option value="Bimestral">Bimestral</option>
+                      <option value="Trimestral">Trimestral</option>
+                      <option value="Semestral">Semestral</option>
+                      <option value="Anual">Anual</option>
+                      <option value="Cada 2 años">Cada 2 años</option>
+                      <option value="Cada 5 años">Cada 5 años</option>
+                      <option value="Cada 6 años">Cada 6 años</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

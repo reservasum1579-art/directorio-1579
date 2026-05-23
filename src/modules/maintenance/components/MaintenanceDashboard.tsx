@@ -18,13 +18,16 @@ import {
 } from 'lucide-react';
 import { DEFAULT_BUILDING_ID } from '@/lib/constants';
 import { NewTaskModal } from './NewTaskModal';
+import { ReportIncidentModal } from './ReportIncidentModal';
+import { MaintenanceTimeline } from './MaintenanceTimeline';
 
 export function MaintenanceDashboard() {
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
   const [incidents, setIncidents] = useState<MaintenanceIncident[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'preventive' | 'corrective'>('preventive');
+  const [activeTab, setActiveTab] = useState<'preventive' | 'corrective' | 'timeline'>('preventive');
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  const [isReportIncidentOpen, setIsReportIncidentOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -71,7 +74,11 @@ export function MaintenanceDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" icon={<AlertTriangle className="w-4 h-4" />}>
+          <Button 
+            variant="outline" 
+            icon={<AlertTriangle className="w-4 h-4" />}
+            onClick={() => setIsReportIncidentOpen(true)}
+          >
             Reportar Incidente
           </Button>
           <Button 
@@ -139,9 +146,22 @@ export function MaintenanceDashboard() {
         >
           Correctivo (Incidentes)
         </button>
+        <button
+          onClick={() => setActiveTab('timeline')}
+          className={`flex-1 sm:flex-none px-6 py-2 text-sm font-medium rounded-[--radius-sm] transition-all ${
+            activeTab === 'timeline'
+              ? 'bg-primary-50 text-primary-700 shadow-sm'
+              : 'text-text-secondary hover:bg-background-warm'
+          }`}
+        >
+          Línea de Tiempo
+        </button>
       </div>
 
       {/* Main Content */}
+      {activeTab === 'timeline' ? (
+        <MaintenanceTimeline tasks={tasks} incidents={incidents} />
+      ) : (
       <Card className="overflow-hidden">
         {activeTab === 'preventive' ? (
           <div className="overflow-x-auto">
@@ -254,6 +274,7 @@ export function MaintenanceDashboard() {
           </div>
         )}
       </Card>
+      )}
 
       {isNewTaskOpen && (
         <NewTaskModal
@@ -262,6 +283,17 @@ export function MaintenanceDashboard() {
           onSuccess={(newTask) => {
             setTasks([...tasks, newTask]);
             setIsNewTaskOpen(false);
+          }}
+        />
+      )}
+
+      {isReportIncidentOpen && (
+        <ReportIncidentModal
+          buildingId={DEFAULT_BUILDING_ID}
+          onClose={() => setIsReportIncidentOpen(false)}
+          onSuccess={(newIncident) => {
+            setIncidents([newIncident, ...incidents]);
+            setIsReportIncidentOpen(false);
           }}
         />
       )}
