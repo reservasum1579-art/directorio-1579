@@ -12,7 +12,7 @@ export default function SumPage() {
   // MOCK DATA FOR DEMO
   const profile = { id: 'mock-user' };
   const formattedUserUnits = [
-    { unit_id: 'unit-1', units: { floor: '14', unit: 'B' } }
+    { unit_id: 'unit-6c', units: { floor: '6', unit: 'C' } }
   ];
 
   useEffect(() => {
