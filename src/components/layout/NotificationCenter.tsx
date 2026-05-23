@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Bell, 
   X, 
@@ -77,6 +77,14 @@ interface NotificationCenterProps {
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [filter, setFilter] = useState<Notification['type'] | 'all'>('all');
+
+  useEffect(() => {
+    const handleNewNotification = (e: any) => {
+      setNotifications(prev => [e.detail, ...prev]);
+    };
+    window.addEventListener('new_notification', handleNewNotification);
+    return () => window.removeEventListener('new_notification', handleNewNotification);
+  }, []);
 
   const filteredNotifications = filter === 'all' 
     ? notifications 

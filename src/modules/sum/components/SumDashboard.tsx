@@ -45,6 +45,37 @@ export function SumDashboard({ userUnits, initialHistory, onReservationSuccess }
     }
   };
 
+  const handleCancelReservation = (res: any) => {
+    const reservationDateTime = new Date(`${res.reservation_date}T${res.start_time}`);
+    const now = new Date();
+    const diffHours = (reservationDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (diffHours < 24) {
+      alert('Solo podés cancelar reservas con más de 24 hs de anticipación.');
+      return;
+    }
+
+    if (window.confirm('¿Estás seguro que querés cancelar esta reserva?')) {
+      setHistory(prev => prev.map(item => item.id === res.id ? { ...item, status: 'cancelled', price: 0, deposit_amount: 0 } : item));
+      
+      // Dispatch notification
+      const event = new CustomEvent('new_notification', {
+        detail: {
+          id: Math.random().toString(36).substr(2, 9),
+          type: 'sum',
+          title: 'Reserva Cancelada',
+          description: `Cancelaste tu reserva del ${formatShortDate(res.reservation_date)} turno ${shiftLabels[res.shift_type]}.`,
+          time: 'Recién',
+          read: false
+        }
+      });
+      window.dispatchEvent(event);
+      
+      // Reload calendar to free up the date
+      refetch();
+    }
+  };
+
   if (!rules) return <LoadingScreen message="Cargando configuración del SUM..." />;
 
   const shiftLabels: Record<string, string> = {
@@ -108,6 +139,13 @@ export function SumDashboard({ userUnits, initialHistory, onReservationSuccess }
                     <p>Horario: {res.start_time.slice(0, 5)} - {res.end_time.slice(0, 5)}</p>
                     <p>Costo total: {formatCurrency(res.price + res.deposit_amount)}</p>
                   </div>
+                  {res.status !== 'cancelled' && (
+                    <div className="mt-3 pt-3 border-t border-border-light flex justify-end">
+                      <Button variant="secondary" size="sm" onClick={() => handleCancelReservation(res)}>
+                        Cancelar Reserva
+                      </Button>
+                    </div>
+                  )}
                 </Card>
               ))
             ) : (
