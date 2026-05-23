@@ -142,5 +142,6 @@ export function NewsEditorModal({ isOpen, onClose, onSave, editingAnnouncement }
         </div>
       </div>
     </div>
+    </Portal>
   );
 }

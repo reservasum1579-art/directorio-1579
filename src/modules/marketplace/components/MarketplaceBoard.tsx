@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Portal } from '@/components/Portal';
 
 interface MarketplaceBoardProps {
   posts: MarketplacePost[];
