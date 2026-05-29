@@ -1,7 +1,8 @@
 'use client';
 
-import { Store, Car, Wrench, Search, Plus, ThumbsUp, X, Camera, Send, Sparkles, MessageCircle, Mail as MailIcon, CheckCircle2 } from 'lucide-react';
+import { Store, Car, Wrench, Search, Plus, ThumbsUp, X, Camera, Send, Sparkles, MessageCircle, Mail as MailIcon, CheckCircle2, Trash2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MarketplacePost } from '../types/marketplace.types';
+import { updateMarketplacePostStatusAction } from '../actions/marketplace.actions';
 import { Badge } from '@/components/ui/Badge';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -11,18 +12,20 @@ import { Portal } from '@/components/Portal';
 interface MarketplaceBoardProps {
   posts: MarketplacePost[];
   currentProfile?: {
+    id?: string;
+    role?: string;
     first_name: string;
     last_name: string;
+    floor?: string;
+    unit?: string;
   };
 }
 
 export function MarketplaceBoard({ posts: initialPosts, currentProfile }: MarketplaceBoardProps) {
   const [posts, setPosts] = useState(initialPosts);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
-  const [isEmailSent, setIsEmailSent] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
   
   const [newPost, setNewPost] = useState({
@@ -30,18 +33,63 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
     description: '',
     price: '',
     category: 'Varios',
-    image_url: ''
+    image_urls: [] as string[]
   });
+
+  const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({});
+
+  const nextImage = (e: React.MouseEvent, postId: string, maxIndex: number) => {
+    e.stopPropagation();
+    setActiveImageIndex(prev => ({
+      ...prev,
+      [postId]: prev[postId] !== undefined ? Math.min(prev[postId] + 1, maxIndex) : 1
+    }));
+  };
+
+  const prevImage = (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    setActiveImageIndex(prev => ({
+      ...prev,
+      [postId]: prev[postId] ? Math.max(prev[postId] - 1, 0) : 0
+    }));
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && newPost.image_urls.length < 5) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewPost({ ...newPost, image_url: reader.result as string });
+        setNewPost({ ...newPost, image_urls: [...newPost.image_urls, reader.result as string] });
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Seguro que querés eliminar esta publicación?')) return;
+    
+    // Optistic update
+    setPosts(posts.filter(p => p.id !== postId));
+    await updateMarketplacePostStatusAction(postId, 'rejected');
+  };
+
+  const handleMarkSold = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Marcar como vendido? Quedará visible por 15 días.')) return;
+    
+    // Optistic update
+    setPosts(posts.map(p => p.id === postId ? { ...p, status: 'sold' as any } : p));
+    await updateMarketplacePostStatusAction(postId, 'sold');
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('es-AR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   const categories = ['Varios', 'Cocheras', 'Servicios', 'Sugerencias'];
@@ -55,6 +103,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
     
     const post: any = {
       id: Math.random().toString(36).substr(2, 9),
+      user_id: currentProfile?.id,
       title: newPost.title,
       description: newPost.description,
       price: parseFloat(newPost.price),
@@ -62,38 +111,45 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
       created_at: new Date().toISOString(),
       profiles: {
         first_name: currentProfile?.first_name || 'Patricio',
-        last_name: currentProfile?.last_name || 'Kenny'
+        last_name: currentProfile?.last_name || 'Kenny',
+        floor: currentProfile?.floor || '6',
+        unit: currentProfile?.unit || 'C'
       },
-      marketplace_images: newPost.image_url ? [{ image_url: newPost.image_url }] : []
+      marketplace_images: newPost.image_urls.map(url => ({ image_url: url }))
     };
 
     setPosts([post, ...posts]);
     setIsSubmitting(false);
     setIsModalOpen(false);
-    setNewPost({ title: '', description: '', price: '', category: 'Varios', image_url: '' });
+    setNewPost({ title: '', description: '', price: '', category: 'Varios', image_urls: [] });
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simular envío de email
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsEmailSent(true);
-    setTimeout(() => {
-      setIsEmailSent(false);
-      setIsContactModalOpen(false);
-      setSelectedPost(null);
-    }, 2500);
+  const handleWhatsAppClick = (post: any) => {
+    const rawPhone = post.profiles?.phone;
+    
+    if (!rawPhone) {
+      alert("El vecino aún no ha registrado su número de teléfono en su perfil.");
+      return;
+    }
+    
+    // Limpiamos para quedarnos solo con números
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    
+    const message = `Hola ${post.profiles?.first_name}, vi tu publicación "${post.title}" en el Marketplace del consorcio y me interesa.`;
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   const generateMockImage = () => {
+    if (newPost.image_urls.length >= 5) return;
     const urls = [
       'https://images.unsplash.com/photo-1540959733332-e94e270b2d42?auto=format&fit=crop&q=80&w=600',
       'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&q=80&w=600',
-      'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=600'
+      'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=600',
+      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
+      'https://images.unsplash.com/photo-1524289286702-f07229da36f5?auto=format&fit=crop&q=80&w=600'
     ];
-    setNewPost({ ...newPost, image_url: urls[Math.floor(Math.random() * urls.length)] });
+    setNewPost({ ...newPost, image_urls: [...newPost.image_urls, urls[Math.floor(Math.random() * urls.length)]] });
   };
   const getCategoryIcon = (category: string | null) => {
     switch (category) {
@@ -206,31 +262,36 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-1">Fotos del Producto/Servicio</label>
                   <div className="flex flex-col gap-3">
-                    {!newPost.image_url ? (
+                    {newPost.image_urls.length === 0 ? (
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:bg-white/5 hover:border-primary-500/50 transition-all group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Camera className="w-8 h-8 text-text-muted mb-2 group-hover:text-primary-500 transition-colors" />
                           <p className="text-xs text-text-muted font-medium">Hacé clic para subir una foto</p>
-                          <p className="text-[10px] text-text-muted/60 mt-1 uppercase">PNG, JPG o WEBP</p>
+                          <p className="text-[10px] text-text-muted/60 mt-1 uppercase">PNG, JPG o WEBP (máx. 5)</p>
                         </div>
                         <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                       </label>
                     ) : (
-                      <div className="relative rounded-2xl overflow-hidden border border-primary-500/30 h-48 w-full group">
-                        <img src={newPost.image_url} alt="Preview" className="w-full h-full object-cover" />
-                        <button 
-                          type="button" 
-                          onClick={() => setNewPost({...newPost, image_url: ''})}
-                          className="absolute top-2 right-2 bg-error-500 text-white p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                           <label className="cursor-pointer bg-white text-primary-900 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-                             <Camera className="h-4 w-4" /> Cambiar Foto
-                             <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                           </label>
-                        </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {newPost.image_urls.map((url, idx) => (
+                          <div key={idx} className="relative rounded-xl overflow-hidden border border-primary-500/30 h-24 w-full group">
+                            <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                            <button 
+                              type="button" 
+                              onClick={() => setNewPost({...newPost, image_urls: newPost.image_urls.filter((_, i) => i !== idx)})}
+                              className="absolute top-1 right-1 bg-error-500 text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        {newPost.image_urls.length < 5 && (
+                          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary-500/50 transition-all group">
+                            <Camera className="w-6 h-6 text-text-muted mb-1 group-hover:text-primary-500 transition-colors" />
+                            <p className="text-[10px] text-text-muted font-medium text-center leading-tight">Agregar<br/>({newPost.image_urls.length}/5)</p>
+                            <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                          </label>
+                        )}
                       </div>
                     )}
                     
@@ -258,71 +319,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
         </div>
       )}
 
-      {/* Modal de Contacto (Simulación Email) */}
-      {isContactModalOpen && (
-        <Portal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-            <Card className="w-full max-w-md border-primary-500/20 bg-surface shadow-2xl animate-scale-in max-h-[calc(100vh-2rem)] flex flex-col overflow-none" padding="none">
-              {isEmailSent ? (
-                <div className="p-10 text-center space-y-4 animate-scale-in overflow-y-auto flex-grow">
-                  <div className="h-20 w-20 bg-success-500/10 text-success-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 className="h-10 w-10 animate-bounce" />
-                  </div>
-                  <h3 className="font-display font-bold text-2xl text-white">¡Mensaje Enviado!</h3>
-                  <p className="text-text-secondary text-sm">
-                    Le enviamos un email a <span className="text-primary-400 font-semibold">{selectedPost?.profiles?.first_name}</span> con tus datos de contacto.
-                  </p>
-                  <div className="pt-4 text-[10px] text-text-muted uppercase tracking-widest font-bold opacity-50"></div>
-                </div>
-              ) : (
-                <form onSubmit={handleContactSubmit} className="flex flex-col flex-grow overflow-hidden">
-                  <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-primary-500/5 shrink-0">
-                    <h3 className="font-display font-bold text-lg text-primary-400">Interés en: {selectedPost?.title}</h3>
-                    <button type="button" onClick={() => setIsContactModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
 
-                  <div className="p-6 space-y-5 overflow-y-auto flex-grow">
-                    <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10">
-                      <div className="h-10 w-10 rounded-full bg-primary-900 flex items-center justify-center text-primary-400 font-bold">
-                        {selectedPost?.profiles?.first_name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-xs text-text-muted font-bold uppercase tracking-tighter">Vendedor</p>
-                        <p className="text-sm font-semibold text-white">{selectedPost?.profiles?.first_name} {selectedPost?.profiles?.last_name}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Tu Mensaje</label>
-                      <textarea
-                        required
-                        placeholder={`Hola ${selectedPost?.profiles?.first_name}, me interesa. ¿Sigue disponible?`}
-                        className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-white h-32 resize-none"
-                      />
-                    </div>
-
-                    <div className="bg-info-500/5 border border-info-500/10 p-3 rounded-lg flex gap-3 items-start">
-                      <MailIcon className="h-4 w-4 text-info-400 shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-info-200/70 leading-relaxed">
-                        Al enviar, el vecino recibirá una notificación por email con tu nombre, unidad y datos de contacto para responderte.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="px-6 py-4 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
-                    <Button type="button" variant="ghost" onClick={() => setIsContactModalOpen(false)}>Cancelar</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-primary-600 hover:bg-primary-700 text-white min-w-[140px] gap-2">
-                      {isSubmitting ? 'Enviando...' : <><Send className="h-4 w-4" /> Enviar Interés</>}
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </Card>
-          </div>
-        </Portal>
-      )}
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -356,11 +353,35 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                 {/* Image Area */}
                 <div className="h-48 w-full bg-background-warm relative overflow-hidden">
                   {post.marketplace_images && post.marketplace_images.length > 0 ? (
-                    <img 
-                      src={post.marketplace_images[0].image_url} 
-                      alt={post.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <div className="relative w-full h-full group">
+                      <img 
+                        src={post.marketplace_images[activeImageIndex[post.id] || 0].image_url} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover transition-transform duration-500"
+                      />
+                      {post.marketplace_images.length > 1 && (
+                        <>
+                          <button 
+                            onClick={(e) => prevImage(e, post.id)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0 z-20"
+                            disabled={(activeImageIndex[post.id] || 0) === 0}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => nextImage(e, post.id, post.marketplace_images!.length - 1)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0 z-20"
+                            disabled={(activeImageIndex[post.id] || 0) === post.marketplace_images!.length - 1}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-lg z-20">
+                            <Camera className="h-3 w-3" />
+                            {(activeImageIndex[post.id] || 0) + 1}/{post.marketplace_images.length}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-bright to-background">
                       {getCategoryIcon(post.category)}
@@ -371,6 +392,36 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                       ${post.price.toLocaleString('es-AR')}
                     </div>
                   )}
+                  {post.status === 'sold' && (
+                    <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10">
+                      <div className="bg-success-500/90 text-white px-6 py-2 rounded-xl font-display font-bold text-xl tracking-widest uppercase border border-success-400 shadow-[0_0_20px_rgba(34,197,94,0.4)] transform -rotate-12 flex items-center gap-2">
+                        <CheckCircle className="h-6 w-6" />
+                        Vendido
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Action Buttons Overlay */}
+                  <div className="absolute top-3 right-3 flex gap-2 z-20">
+                    {(currentProfile?.role === 'admin' || currentProfile?.id === post.user_id) && post.status !== 'sold' && (
+                      <button 
+                        onClick={(e) => handleDelete(e, post.id)}
+                        className="bg-background/80 hover:bg-error-500 text-error-500 hover:text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg border border-white/10"
+                        title="Eliminar publicación"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                    {currentProfile?.id === post.user_id && post.status !== 'sold' && (
+                      <button 
+                        onClick={(e) => handleMarkSold(e, post.id)}
+                        className="bg-background/80 hover:bg-success-500 text-success-500 hover:text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg border border-white/10"
+                        title="Marcar como Vendido"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Content */}
@@ -379,6 +430,9 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                     <span className="bg-white/5 border border-white/10 text-text-secondary px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5">
                       {getCategoryIcon(post.category)}
                       {post.category || 'Varios'}
+                    </span>
+                    <span className="text-[10px] text-text-muted font-medium ml-auto">
+                      Publicado el {formatDate(post.created_at)}
                     </span>
                   </div>
                   
@@ -396,21 +450,20 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                         {post.profiles?.first_name.charAt(0)}{post.profiles?.last_name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col">
                           <p className="text-xs font-semibold text-text-primary truncate">
                             {post.profiles?.first_name}
                           </p>
-                          <Badge variant="accent" size="sm" className="px-1.5 py-0 text-[9px] shrink-0">
-                            U. {getMockUnit(post.id)}
-                          </Badge>
+                          <p className="text-[10px] text-text-muted">
+                            Piso {post.profiles?.floor || '1'} Depto {post.profiles?.unit || getMockUnit(post.id)}
+                          </p>
                         </div>
                       </div>
                     </div>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedPost(post);
-                        setIsContactModalOpen(true);
+                        handleWhatsAppClick(post);
                       }}
                       className="bg-primary-500/10 hover:bg-primary-500 text-primary-400 hover:text-white p-2 rounded-lg transition-all border border-primary-500/20"
                     >

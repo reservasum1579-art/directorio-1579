@@ -37,6 +37,9 @@ export interface MarketplacePost {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
+    phone?: string | null;
+    unit?: string | null;
+    floor?: string | null;
   };
   marketplace_images?: MarketplaceImage[];
   marketplace_reviews?: MarketplaceReview[];

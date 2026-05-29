@@ -2,11 +2,11 @@ import type { MarketplacePost } from '../types/marketplace.types';
 
 export const marketplaceService = {
   /**
-   * Obtiene todos los posteos aprobados (y no vendidos) del marketplace para un edificio
+   * Obtiene todos los posteos aprobados (y los vendidos recientemente) del marketplace para un edificio
+   * TODO: Reemplazar con conexión real a Supabase cuando estén disponibles las credenciales
    */
   async getActivePosts(buildingId: string): Promise<MarketplacePost[]> {
-    // MOCK DATA FOR DEMO
-    return [
+    const MOCK_DATA: MarketplacePost[] = [
       {
         id: '1',
         building_id: buildingId,
@@ -15,7 +15,7 @@ export const marketplaceService = {
         description: 'Cochera amplia, entra una camioneta grande. Muy cerca del ascensor de la Torre A. Alquiler mensual.',
         price: 35000,
         category: 'Cocheras',
-        is_service: true,
+        is_service: false,
         status: 'approved',
         moderated_by: 'admin',
         moderated_at: new Date().toISOString(),
@@ -37,7 +37,7 @@ export const marketplaceService = {
         title: 'Bicicleta Olmo Rodado 29',
         description: 'Casi sin uso, la compré hace 6 meses y la usé dos veces. Tiene frenos a disco y cambios Shimano.',
         price: 180000,
-        category: 'Productos',
+        category: 'Varios',
         is_service: false,
         status: 'approved',
         moderated_by: 'admin',
@@ -69,7 +69,7 @@ export const marketplaceService = {
         updated_at: new Date().toISOString(),
         profiles: {
           first_name: 'Carlos',
-          last_name: 'Electricista',
+          last_name: 'Rodríguez',
           avatar_url: null,
         },
         marketplace_images: [{
@@ -100,5 +100,25 @@ export const marketplaceService = {
         }],
       }
     ];
+
+    // Filtrar vendidos con más de 15 días
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    return MOCK_DATA.filter(post => {
+      if (post.status === 'sold') {
+        return new Date(post.updated_at) >= fifteenDaysAgo;
+      }
+      return true;
+    });
+  },
+
+  /**
+   * Actualiza el estado de una publicación en modo mock (sin Supabase)
+   * TODO: Conectar a Supabase cuando estén disponibles las credenciales
+   */
+  async updatePostStatus(postId: string, status: 'rejected' | 'sold' | 'archived') {
+    // En modo mock no hacemos nada en el servidor, el estado se maneja en el cliente
+    console.log(`[MOCK] updatePostStatus: post ${postId} → ${status}`);
   }
 };

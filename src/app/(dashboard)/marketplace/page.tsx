@@ -12,8 +12,12 @@ export default async function MarketplacePage() {
   
   // MOCKED PROFILE TO MATCH LAYOUT
   const profile = {
+    id: 'admin-user-id', // ID falso para simular usuario
     first_name: 'Patricio',
     last_name: 'Kenny',
+    role: 'admin', // Simular rol admin para probar el borrado
+    floor: '6',
+    unit: 'C',
   };
 
   return (
