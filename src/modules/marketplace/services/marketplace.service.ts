@@ -10,7 +10,7 @@ export const marketplaceService = {
       .from('marketplace_posts')
       .select(`
         *,
-        profiles ( first_name, last_name, floor, unit, phone ),
+        profiles!marketplace_posts_user_id_fkey ( first_name, last_name, floor, unit, phone ),
         marketplace_images ( id, image_url, sort_order )
       `)
       .eq('building_id', buildingId)
