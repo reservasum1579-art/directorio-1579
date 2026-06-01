@@ -256,7 +256,7 @@ export default function DashboardPage() {
               <span className="text-xs font-bold text-info-900 uppercase tracking-wider">Urgencias</span>
             </div>
             <div className="divide-y divide-border-light">
-              {settings?.emergency_phones.map((phone, i) => (
+              {(settings?.emergency_phones || []).map((phone, i) => (
                 <div key={i} className="px-4 py-3 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{phone.label}</p>
