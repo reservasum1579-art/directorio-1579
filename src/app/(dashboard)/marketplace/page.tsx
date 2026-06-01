@@ -5,6 +5,8 @@ import { marketplaceService } from '@/modules/marketplace/services/marketplace.s
 import { DEFAULT_BUILDING_ID } from '@/lib/constants';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Marketplace Vecinal',
 };
