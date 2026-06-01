@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server';
-import type { MarketplacePost } from '../types/marketplace.types';
 
 export const marketplaceService = {
   /**
@@ -8,16 +7,22 @@ export const marketplaceService = {
   async getActivePosts(buildingId: string) {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from('vw_marketplace_feed')
-      .select('*')
-      .eq('building_id', buildingId);
+      .from('marketplace_posts')
+      .select(`
+        *,
+        profiles ( first_name, last_name, floor, unit, phone ),
+        marketplace_images ( id, image_url, sort_order )
+      `)
+      .eq('building_id', buildingId)
+      .in('status', ['approved', 'sold'])
+      .order('created_at', { ascending: false });
       
     if (error) {
       console.error('Error fetching marketplace posts:', error);
       return [];
     }
     
-    // Ensure sold posts older than 15 days are filtered out (view already handles it, but double‑check)
+    // Filter out sold posts older than 15 days
     const fifteenDaysAgo = new Date();
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
     
@@ -62,7 +67,7 @@ export const marketplaceService = {
         price: postData.price,
         category: postData.category,
         is_service: postData.category === 'Servicios' || postData.category === 'Sugerencias',
-        status: 'approved', // Assuming auto-approve for now
+        status: 'approved',
       })
       .select()
       .single();
