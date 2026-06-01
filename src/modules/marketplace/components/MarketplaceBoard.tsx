@@ -2,7 +2,8 @@
 
 import { Store, Car, Wrench, Search, Plus, ThumbsUp, X, Camera, Send, Sparkles, MessageCircle, Mail as MailIcon, CheckCircle2, Trash2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MarketplacePost } from '../types/marketplace.types';
-import { updateMarketplacePostStatusAction } from '../actions/marketplace.actions';
+import { updateMarketplacePostStatusAction, createMarketplacePostAction } from '../actions/marketplace.actions';
+import { createClient } from '@/lib/supabase/client';
 import { Badge } from '@/components/ui/Badge';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -33,7 +34,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
     description: '',
     price: '',
     category: 'Varios',
-    image_urls: [] as string[]
+    images: [] as { file?: File, url: string }[]
   });
 
   const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({});
@@ -56,12 +57,9 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && newPost.image_urls.length < 5) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPost({ ...newPost, image_urls: [...newPost.image_urls, reader.result as string] });
-      };
-      reader.readAsDataURL(file);
+    if (file && newPost.images.length < 5) {
+      const url = URL.createObjectURL(file);
+      setNewPost({ ...newPost, images: [...newPost.images, { file, url }] });
     }
   };
 
@@ -98,30 +96,68 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simular delay de red
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const post: any = {
-      id: Math.random().toString(36).substr(2, 9),
+    const supabase = createClient();
+    const finalImageUrls: string[] = [];
+
+    // Subir imágenes a Supabase Storage
+    for (const img of newPost.images) {
+      if (img.file) {
+        const fileExt = img.file.name.split('.').pop();
+        const fileName = `${currentProfile?.id || 'anon'}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from('marketplace')
+          .upload(fileName, img.file);
+        
+        if (error) {
+          console.error('Error uploading image:', error);
+          alert(`No se pudo subir una de las imágenes: ${error.message}. Verifica que el bucket "marketplace" exista y tenga permisos.`);
+          continue; // Si falla una, seguimos con las demás
+        }
+        
+        if (data) {
+          const { data: publicUrlData } = supabase.storage
+            .from('marketplace')
+            .getPublicUrl(data.path);
+          finalImageUrls.push(publicUrlData.publicUrl);
+        }
+      } else {
+        // Es un mock o imagen externa
+        finalImageUrls.push(img.url);
+      }
+    }
+
+    const postData = {
       user_id: currentProfile?.id,
       title: newPost.title,
       description: newPost.description,
-      price: parseFloat(newPost.price),
+      price: newPost.price ? parseFloat(newPost.price) : null,
       category: newPost.category,
-      created_at: new Date().toISOString(),
-      profiles: {
-        first_name: currentProfile?.first_name || 'Patricio',
-        last_name: currentProfile?.last_name || 'Kenny',
-        floor: currentProfile?.floor || '6',
-        unit: currentProfile?.unit || 'C'
-      },
-      marketplace_images: newPost.image_urls.map(url => ({ image_url: url }))
     };
 
-    setPosts([post, ...posts]);
+    const result = await createMarketplacePostAction(postData, finalImageUrls);
+    
+    if (result.success && result.post) {
+      // Agregar datos del perfil y fotos para mostrarlo optimísticamente
+      const fullPost = {
+        ...result.post,
+        profiles: {
+          first_name: currentProfile?.first_name || 'Vecino',
+          last_name: currentProfile?.last_name || '',
+          floor: currentProfile?.floor || '',
+          unit: currentProfile?.unit || ''
+        },
+        marketplace_images: finalImageUrls.map(url => ({ image_url: url }))
+      };
+      
+      setPosts([fullPost, ...posts]);
+      setIsModalOpen(false);
+      setNewPost({ title: '', description: '', price: '', category: 'Varios', images: [] });
+    } else {
+      alert(result.error || 'Ocurrió un error al publicar el aviso.');
+    }
+    
     setIsSubmitting(false);
-    setIsModalOpen(false);
-    setNewPost({ title: '', description: '', price: '', category: 'Varios', image_urls: [] });
   };
 
   const handleWhatsAppClick = (post: any) => {
@@ -141,7 +177,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
   };
 
   const generateMockImage = () => {
-    if (newPost.image_urls.length >= 5) return;
+    if (newPost.images.length >= 5) return;
     const urls = [
       'https://images.unsplash.com/photo-1540959733332-e94e270b2d42?auto=format&fit=crop&q=80&w=600',
       'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&q=80&w=600',
@@ -149,7 +185,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
       'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
       'https://images.unsplash.com/photo-1524289286702-f07229da36f5?auto=format&fit=crop&q=80&w=600'
     ];
-    setNewPost({ ...newPost, image_urls: [...newPost.image_urls, urls[Math.floor(Math.random() * urls.length)]] });
+    setNewPost({ ...newPost, images: [...newPost.images, { url: urls[Math.floor(Math.random() * urls.length)] }] });
   };
   const getCategoryIcon = (category: string | null) => {
     switch (category) {
@@ -262,7 +298,7 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-1">Fotos del Producto/Servicio</label>
                   <div className="flex flex-col gap-3">
-                    {newPost.image_urls.length === 0 ? (
+                    {newPost.images.length === 0 ? (
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:bg-white/5 hover:border-primary-500/50 transition-all group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Camera className="w-8 h-8 text-text-muted mb-2 group-hover:text-primary-500 transition-colors" />
@@ -273,22 +309,22 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                       </label>
                     ) : (
                       <div className="grid grid-cols-3 gap-2">
-                        {newPost.image_urls.map((url, idx) => (
+                        {newPost.images.map((img, idx) => (
                           <div key={idx} className="relative rounded-xl overflow-hidden border border-primary-500/30 h-24 w-full group">
-                            <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                            <img src={img.url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                             <button 
                               type="button" 
-                              onClick={() => setNewPost({...newPost, image_urls: newPost.image_urls.filter((_, i) => i !== idx)})}
+                              onClick={() => setNewPost({...newPost, images: newPost.images.filter((_, i) => i !== idx)})}
                               className="absolute top-1 right-1 bg-error-500 text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform"
                             >
                               <X className="h-3 w-3" />
                             </button>
                           </div>
                         ))}
-                        {newPost.image_urls.length < 5 && (
+                        {newPost.images.length < 5 && (
                           <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary-500/50 transition-all group">
                             <Camera className="w-6 h-6 text-text-muted mb-1 group-hover:text-primary-500 transition-colors" />
-                            <p className="text-[10px] text-text-muted font-medium text-center leading-tight">Agregar<br/>({newPost.image_urls.length}/5)</p>
+                            <p className="text-[10px] text-text-muted font-medium text-center leading-tight">Agregar<br/>({newPost.images.length}/5)</p>
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                           </label>
                         )}
@@ -352,10 +388,10 @@ export function MarketplaceBoard({ posts: initialPosts, currentProfile }: Market
                 
                 {/* Image Area */}
                 <div className="h-48 w-full bg-background-warm relative overflow-hidden">
-                  {post.marketplace_images && post.marketplace_images.length > 0 ? (
+                  {post.marketplace_images && post.marketplace_images.length > 0 && post.marketplace_images[0].image_url ? (
                     <div className="relative w-full h-full group">
                       <img 
-                        src={post.marketplace_images[activeImageIndex[post.id] || 0].image_url} 
+                        src={post.marketplace_images[activeImageIndex[post.id] || 0]?.image_url} 
                         alt={post.title} 
                         className="w-full h-full object-cover transition-transform duration-500"
                       />

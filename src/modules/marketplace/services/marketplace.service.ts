@@ -1,111 +1,27 @@
+import { createClient } from '@/lib/supabase/server';
 import type { MarketplacePost } from '../types/marketplace.types';
 
 export const marketplaceService = {
   /**
    * Obtiene todos los posteos aprobados (y los vendidos recientemente) del marketplace para un edificio
-   * TODO: Reemplazar con conexión real a Supabase cuando estén disponibles las credenciales
    */
-  async getActivePosts(buildingId: string): Promise<MarketplacePost[]> {
-    const MOCK_DATA: MarketplacePost[] = [
-      {
-        id: '1',
-        building_id: buildingId,
-        user_id: 'user1',
-        title: 'Alquiler Cochera N° 45 - Subsuelo 1',
-        description: 'Cochera amplia, entra una camioneta grande. Muy cerca del ascensor de la Torre A. Alquiler mensual.',
-        price: 35000,
-        category: 'Cocheras',
-        is_service: false,
-        status: 'approved',
-        moderated_by: 'admin',
-        moderated_at: new Date().toISOString(),
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        updated_at: new Date().toISOString(),
-        profiles: {
-          first_name: 'Martín',
-          last_name: 'Gómez',
-          avatar_url: null,
-        },
-        marketplace_images: [{
-          id: 'img1', post_id: '1', image_url: 'https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
-        }],
-      },
-      {
-        id: '2',
-        building_id: buildingId,
-        user_id: 'user2',
-        title: 'Bicicleta Olmo Rodado 29',
-        description: 'Casi sin uso, la compré hace 6 meses y la usé dos veces. Tiene frenos a disco y cambios Shimano.',
-        price: 180000,
-        category: 'Varios',
-        is_service: false,
-        status: 'approved',
-        moderated_by: 'admin',
-        moderated_at: new Date().toISOString(),
-        created_at: new Date(Date.now() - 172800000).toISOString(),
-        updated_at: new Date().toISOString(),
-        profiles: {
-          first_name: 'Lucía',
-          last_name: 'Fernández',
-          avatar_url: null,
-        },
-        marketplace_images: [{
-          id: 'img2', post_id: '2', image_url: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
-        }],
-      },
-      {
-        id: '3',
-        building_id: buildingId,
-        user_id: 'user3',
-        title: 'Servicio de Electricidad y Mantenimiento',
-        description: 'Realizo reparaciones eléctricas menores en los departamentos. Cambio de tomas, instalación de luminarias, etc.',
-        price: null,
-        category: 'Servicios',
-        is_service: true,
-        status: 'approved',
-        moderated_by: 'admin',
-        moderated_at: new Date().toISOString(),
-        created_at: new Date(Date.now() - 259200000).toISOString(),
-        updated_at: new Date().toISOString(),
-        profiles: {
-          first_name: 'Carlos',
-          last_name: 'Rodríguez',
-          avatar_url: null,
-        },
-        marketplace_images: [{
-          id: 'img3', post_id: '3', image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
-        }],
-      },
-      {
-        id: '4',
-        building_id: buildingId,
-        user_id: 'user4',
-        title: 'Plomero de confianza (Roberto)',
-        description: 'Vino a arreglar una pérdida en el baño y trabajó de diez. Muy prolijo y precio razonable. Recomendado!',
-        price: null,
-        category: 'Sugerencias',
-        is_service: true,
-        status: 'approved',
-        moderated_by: 'admin',
-        moderated_at: new Date().toISOString(),
-        created_at: new Date(Date.now() - 345600000).toISOString(),
-        updated_at: new Date().toISOString(),
-        profiles: {
-          first_name: 'Elena',
-          last_name: 'Pérez',
-          avatar_url: null,
-        },
-        marketplace_images: [{
-          id: 'img4', post_id: '4', image_url: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=600&auto=format&fit=crop', sort_order: 0, created_at: new Date().toISOString()
-        }],
-      }
-    ];
-
-    // Filtrar vendidos con más de 15 días
+  async getActivePosts(buildingId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('vw_marketplace_feed')
+      .select('*')
+      .eq('building_id', buildingId);
+      
+    if (error) {
+      console.error('Error fetching marketplace posts:', error);
+      return [];
+    }
+    
+    // Ensure sold posts older than 15 days are filtered out (view already handles it, but double‑check)
     const fifteenDaysAgo = new Date();
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-
-    return MOCK_DATA.filter(post => {
+    
+    return (data || []).filter(post => {
       if (post.status === 'sold') {
         return new Date(post.updated_at) >= fifteenDaysAgo;
       }
@@ -114,11 +30,65 @@ export const marketplaceService = {
   },
 
   /**
-   * Actualiza el estado de una publicación en modo mock (sin Supabase)
-   * TODO: Conectar a Supabase cuando estén disponibles las credenciales
+   * Actualiza el estado de una publicación
    */
   async updatePostStatus(postId: string, status: 'rejected' | 'sold' | 'archived') {
-    // En modo mock no hacemos nada en el servidor, el estado se maneja en el cliente
-    console.log(`[MOCK] updatePostStatus: post ${postId} → ${status}`);
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('marketplace_posts')
+      .update({ status })
+      .eq('id', postId);
+      
+    if (error) {
+      console.error('Error updating post status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Crea una nueva publicación
+   */
+  async createPost(postData: any, images: string[]) {
+    const supabase = await createClient();
+    
+    // Insert post
+    const { data: newPost, error: postError } = await supabase
+      .from('marketplace_posts')
+      .insert({
+        building_id: postData.building_id,
+        user_id: postData.user_id,
+        title: postData.title,
+        description: postData.description,
+        price: postData.price,
+        category: postData.category,
+        is_service: postData.category === 'Servicios' || postData.category === 'Sugerencias',
+        status: 'approved', // Assuming auto-approve for now
+      })
+      .select()
+      .single();
+
+    if (postError) {
+      console.error('Error creating marketplace post:', postError);
+      throw postError;
+    }
+
+    // Insert images
+    if (images && images.length > 0) {
+      const imageRecords = images.map((url, index) => ({
+        post_id: newPost.id,
+        image_url: url,
+        sort_order: index
+      }));
+
+      const { error: imagesError } = await supabase
+        .from('marketplace_images')
+        .insert(imageRecords);
+
+      if (imagesError) {
+        console.error('Error inserting marketplace images:', imagesError);
+      }
+    }
+
+    return newPost;
   }
 };
