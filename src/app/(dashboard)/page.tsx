@@ -12,7 +12,6 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
-import { settingsService, BuildingSettings } from '@/modules/admin/services/settings.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +28,15 @@ export default async function DashboardPage() {
     .single() as any;
 
   const userName = profile?.first_name || user.user_metadata?.full_name?.split(' ')[0] || 'vecino/a';
-  const settings = settingsService.getSettings();
+
+  // Default building settings (client-editable settings are client-side only)
+  const buildingName = 'Directorio 1579';
+  const emergencyPhones = [
+    { label: 'Seguridad / Portería', number: '11 4567-8900' },
+    { label: 'Administración', number: '0800-333-1234' },
+    { label: 'Urgencias Ascensores', number: '0810-999-5555' },
+    { label: 'Bomberos / Policía', number: '911' }
+  ];
 
   // MOCK DATA FOR DEMO
   const announcements = [
@@ -105,7 +112,7 @@ export default async function DashboardPage() {
             ¡Hola, {userName}! 👋
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Bienvenido a tu portal de {settings?.name || 'Directorio 1579'}.
+            Bienvenido a tu portal de {buildingName}.
           </p>
         </div>
       </section>
@@ -251,7 +258,7 @@ export default async function DashboardPage() {
               <span className="text-xs font-bold text-info-900 uppercase tracking-wider">Urgencias</span>
             </div>
             <div className="divide-y divide-border-light">
-              {(settings?.emergency_phones || []).map((phone, i) => (
+              {(emergencyPhones).map((phone, i) => (
                 <div key={i} className="px-4 py-3 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{phone.label}</p>
