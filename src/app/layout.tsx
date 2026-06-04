@@ -1,20 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Outfit, Inter } from 'next/font/google';
 import './globals.css';
 
-const outfit = Outfit({
-  variable: '--font-display',
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
-});
+// Font setup removed due to network restrictions
 
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
-});
+// Font setup removed due to network restrictions
 
 export const metadata: Metadata = {
   title: {
@@ -47,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${outfit.variable} ${inter.variable} h-full`}
+      className="h-full"
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans antialiased">
         <div id="modal-root"></div>

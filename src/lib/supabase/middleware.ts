@@ -34,7 +34,9 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
-    request.nextUrl.pathname.startsWith('/invite');
+    request.nextUrl.pathname.startsWith('/invite') ||
+    request.nextUrl.pathname.startsWith('/set-password') ||
+    request.nextUrl.pathname.startsWith('/auth/');
 
   if (!user && !isAuthRoute && request.nextUrl.pathname !== '/') {
     const url = request.nextUrl.clone();

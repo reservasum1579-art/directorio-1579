@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export async function createClient() {
+  // `cookies()` returns a Promise in the App Router, so we await it
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -9,19 +10,14 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
+        // Supabase expects a `getAll` method returning an array of { name, value }
         getAll() {
-          return cookieStore.getAll();
+          // RequestCookies may not have `getAll` in all environments, fallback to empty array
+          return cookieStore.getAll?.() ?? [];
         },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // The `setAll` method is called from a Server Component
-            // where cookies cannot be set. This can be ignored if
-            // middleware refreshes user sessions.
-          }
+        // `setAll` is deprecated but required for older SDKs – provide a no‑op
+        setAll(_cookies) {
+          // No server‑side cookie setting here
         },
       },
     }

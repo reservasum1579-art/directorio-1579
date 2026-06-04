@@ -26,15 +26,67 @@ export function AdminUnitsManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUnit, setSelectedUnit] = useState<UnitDetail | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<UnitDetail | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [invitingOccupant, setInvitingOccupant] = useState<string | null>(null);
+
+  const handleInvite = async (occupant: any, unit: UnitDetail) => {
+    if (!occupant.email) return;
+    setInvitingOccupant(occupant.id || occupant.name);
+    try {
+      const res = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: occupant.email,
+          name: occupant.name,
+          unitId: unit.id,
+          role: occupant.relationship === 'owner' ? 'owner' : 'resident'
+        })
+      });
+      if (!res.ok) throw new Error('Error al enviar invitación');
+      alert(`Invitación enviada a ${occupant.email}`);
+    } catch (err) {
+      console.error(err);
+      alert('Hubo un error al enviar la invitación');
+    } finally {
+      setInvitingOccupant(null);
+    }
+  };
+
+  const loadUnits = async () => {
+    setLoading(true);
+    const data = await unitsAdminService.getAllUnits();
+    setUnits(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    async function loadUnits() {
-      const data = await unitsAdminService.getAllUnits();
-      setUnits(data);
-      setLoading(false);
-    }
     loadUnits();
   }, []);
+
+  const handleEditChange = (field: keyof UnitDetail, value: any) => {
+    if (editForm) {
+      setEditForm({ ...editForm, [field]: value });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (editForm) {
+      setIsSaving(true);
+      await unitsAdminService.updateUnitDetails(editForm.id, editForm);
+      await loadUnits();
+      // Find the updated unit to show in the modal
+      const data = await unitsAdminService.getAllUnits();
+      const updatedUnit = data.find(u => u.id === editForm.id);
+      if (updatedUnit) {
+        setSelectedUnit(updatedUnit);
+      }
+      setIsEditing(false);
+      setIsSaving(false);
+    }
+  };
 
   const filteredUnits = units.filter(u => 
     `${u.floor}${u.unit}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,7 +223,11 @@ export function AdminUnitsManager() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
-                        onClick={() => setSelectedUnit(unit)}
+                        onClick={() => {
+                          setSelectedUnit(unit);
+                          setEditForm(JSON.parse(JSON.stringify(unit)));
+                          setIsEditing(false);
+                        }}
                         className="p-2 hover:bg-primary-50 rounded-lg text-text-muted hover:text-primary-600 transition-all inline-flex items-center gap-1 font-bold text-xs"
                       >
                         Ver Ficha <ChevronRight className="h-4 w-4" />
@@ -205,21 +261,171 @@ export function AdminUnitsManager() {
         </div>
             
             <div className="p-8 space-y-8 overflow-y-auto flex-grow">
-              {/* Occupants */}
+              {/* Unit Info */}
               <section className="space-y-4">
                 <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary-500" /> Ocupantes ({selectedUnit.occupants.length})
+                  <Building2 className="h-4 w-4 text-primary-500" /> Información de Unidad
                 </h4>
+                <div className="p-4 rounded-xl border border-border-light bg-background-warm/30 grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Cochera Asignada</p>
+                    {isEditing ? (
+                      <input 
+                        className="font-bold text-sm bg-transparent border-b border-border focus:border-primary-500 outline-none w-full"
+                        value={editForm?.parking || ''}
+                        placeholder="Ej: COCH 1"
+                        onChange={(e) => handleEditChange('parking', e.target.value)}
+                      />
+                    ) : (
+                      <p className="font-bold text-sm">{selectedUnit.parking || <span className="text-text-muted italic font-normal">Ninguna</span>}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Unidad Funcional (UF)</p>
+                    {isEditing ? (
+                      <input 
+                        className="font-bold text-sm bg-transparent border-b border-border focus:border-primary-500 outline-none w-full"
+                        value={editForm?.functional_unit || ''}
+                        placeholder="Ej: 036 + 001"
+                        onChange={(e) => handleEditChange('functional_unit', e.target.value)}
+                      />
+                    ) : (
+                      <p className="font-bold text-sm">{selectedUnit.functional_unit || '-'}</p>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Occupants */}
+              <section className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary-500" /> Ocupantes ({(isEditing ? editForm?.occupants : selectedUnit.occupants)?.length || 0})
+                  </h4>
+                  {isEditing && (
+                    <button 
+                      onClick={() => {
+                        if (editForm) {
+                          setEditForm({
+                            ...editForm,
+                            occupants: [...editForm.occupants, { name: '', email: '', phone: '', relationship: 'tenant', is_primary: false }]
+                          });
+                        }
+                      }}
+                      className="text-xs font-bold text-primary-600 flex items-center gap-1"
+                    >
+                      <UserPlus className="h-3 w-3" /> Agregar
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedUnit.occupants.map((occ, i) => (
+                  {(isEditing ? editForm?.occupants : selectedUnit.occupants)?.map((occ, i) => (
                     <div key={i} className="p-4 rounded-xl border border-border-light bg-background-warm/30 flex flex-col gap-2 relative group">
-                      {occ.is_primary && <ShieldCheck className="absolute top-4 right-4 h-4 w-4 text-success-500" />}
-                      <p className="font-bold text-text-primary">{occ.name}</p>
-                      <Badge variant="default" className="w-fit text-[9px] uppercase">{relationLabels[occ.relationship]}</Badge>
-                      <div className="space-y-1 mt-2">
-                        <p className="text-xs text-text-secondary flex items-center gap-2"><Mail className="h-3 w-3" /> {occ.email}</p>
-                        <p className="text-xs text-text-secondary flex items-center gap-2"><Phone className="h-3 w-3" /> {occ.phone}</p>
-                      </div>
+                      {isEditing ? (
+                        <>
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-1 w-full mr-2">
+                              <input 
+                                className="font-bold text-text-primary bg-transparent border-b border-border focus:border-primary-500 outline-none w-full" 
+                                value={occ.name} 
+                                placeholder="Nombre"
+                                onChange={(e) => {
+                                  const newOcc = [...editForm!.occupants];
+                                  newOcc[i].name = e.target.value;
+                                  handleEditChange('occupants', newOcc);
+                                }}
+                              />
+                              <div className="flex items-center gap-2 mt-1">
+                                <button 
+                                  onClick={() => {
+                                    const newOcc = [...editForm!.occupants];
+                                    // Set this one to true, others to false
+                                    newOcc.forEach((o, idx) => o.is_primary = idx === i);
+                                    handleEditChange('occupants', newOcc);
+                                  }}
+                                  className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded flex items-center gap-1 ${occ.is_primary ? 'bg-success-500/20 text-success-700' : 'bg-background-warm hover:bg-border text-text-muted'}`}
+                                >
+                                  <ShieldCheck className="h-3 w-3" />
+                                  {occ.is_primary ? 'Principal' : 'Marcar Principal'}
+                                </button>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const newOcc = [...editForm!.occupants];
+                                newOcc.splice(i, 1);
+                                handleEditChange('occupants', newOcc);
+                              }}
+                              className="text-error-500 ml-2"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <select 
+                            className="text-[9px] uppercase border rounded px-1"
+                            value={occ.relationship}
+                            onChange={(e) => {
+                              const newOcc = [...editForm!.occupants];
+                              newOcc[i].relationship = e.target.value as any;
+                              handleEditChange('occupants', newOcc);
+                            }}
+                          >
+                            <option value="owner">Propietario</option>
+                            <option value="tenant">Inquilino</option>
+                            <option value="family">Familiar</option>
+                            <option value="authorized">Autorizado</option>
+                          </select>
+                          <div className="space-y-1 mt-2">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-3 w-3 text-text-muted" /> 
+                              <input 
+                                className="text-xs text-text-secondary bg-transparent outline-none w-full border-b border-transparent focus:border-border"
+                                value={occ.email} placeholder="Email"
+                                onChange={(e) => {
+                                  const newOcc = [...editForm!.occupants];
+                                  newOcc[i].email = e.target.value;
+                                  handleEditChange('occupants', newOcc);
+                                }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-3 w-3 text-text-muted" /> 
+                              <input 
+                                className="text-xs text-text-secondary bg-transparent outline-none w-full border-b border-transparent focus:border-border"
+                                value={occ.phone} placeholder="Teléfono"
+                                onChange={(e) => {
+                                  const newOcc = [...editForm!.occupants];
+                                  newOcc[i].phone = e.target.value;
+                                  handleEditChange('occupants', newOcc);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {occ.is_primary && <ShieldCheck className="absolute top-4 right-4 h-4 w-4 text-success-500" />}
+                          <p className="font-bold text-text-primary">{occ.name}</p>
+                          <Badge variant="default" className="w-fit text-[9px] uppercase">{relationLabels[occ.relationship]}</Badge>
+                          <div className="space-y-1 mt-2">
+                            <p className="text-xs text-text-secondary flex items-center gap-2"><Mail className="h-3 w-3" /> {occ.email}</p>
+                            <p className="text-xs text-text-secondary flex items-center gap-2"><Phone className="h-3 w-3" /> {occ.phone}</p>
+                          </div>
+                          {occ.email && (
+                            <div className="mt-3">
+                              <button 
+                                onClick={() => handleInvite(occ, selectedUnit)}
+                                disabled={invitingOccupant === (occ.id || occ.name)}
+                                className="w-full bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 text-[10px] font-bold uppercase tracking-wider py-2 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                              >
+                                {invitingOccupant === (occ.id || occ.name) ? 'Enviando...' : (
+                                  <><Mail className="h-3 w-3" /> Enviar Invitación</>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -228,47 +434,139 @@ export function AdminUnitsManager() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 {/* Pets */}
                 <section className="space-y-4">
-                  <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
-                    <PawPrint className="h-4 w-4 text-amber-500" /> Mascotas
-                  </h4>
-                  {selectedUnit.pets.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedUnit.pets.map((pet, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
-                          <span className="text-sm font-medium text-text-primary">{pet.name}</span>
-                          <Badge variant="default" className="text-[9px]">{pet.type}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-text-muted italic">No hay mascotas declaradas.</p>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
+                      <PawPrint className="h-4 w-4 text-amber-500" /> Mascotas
+                    </h4>
+                    {isEditing && (
+                      <button 
+                        onClick={() => {
+                          if (editForm) {
+                            setEditForm({
+                              ...editForm,
+                              pets: [...editForm.pets, { name: '', type: '' }]
+                            });
+                          }
+                        }}
+                        className="text-xs font-bold text-primary-600"
+                      >
+                        + Agregar
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {(isEditing ? editForm?.pets : selectedUnit.pets)?.map((pet, i) => (
+                      <div key={i} className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+                        {isEditing ? (
+                          <>
+                            <input 
+                              className="text-sm font-medium bg-transparent border-b border-border w-1/2 outline-none" 
+                              value={pet.name} placeholder="Nombre"
+                              onChange={(e) => {
+                                const newPets = [...editForm!.pets];
+                                newPets[i].name = e.target.value;
+                                handleEditChange('pets', newPets);
+                              }}
+                            />
+                            <div className="flex items-center gap-2">
+                              <input 
+                                className="text-[9px] uppercase bg-white border rounded px-1 w-16 outline-none" 
+                                value={pet.type} placeholder="Tipo"
+                                onChange={(e) => {
+                                  const newPets = [...editForm!.pets];
+                                  newPets[i].type = e.target.value;
+                                  handleEditChange('pets', newPets);
+                                }}
+                              />
+                              <button onClick={() => {
+                                const newPets = [...editForm!.pets];
+                                newPets.splice(i, 1);
+                                handleEditChange('pets', newPets);
+                              }} className="text-error-500"><X className="h-3 w-3"/></button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-sm font-medium text-text-primary">{pet.name}</span>
+                            <Badge variant="default" className="text-[9px]">{pet.type}</Badge>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                    {(!isEditing && selectedUnit.pets.length === 0) && (
+                      <p className="text-xs text-text-muted italic">No hay mascotas declaradas.</p>
+                    )}
+                  </div>
                 </section>
 
                 {/* Vehicles */}
                 <section className="space-y-4">
-                  <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
-                    <Car className="h-4 w-4 text-blue-500" /> Vehículos
-                  </h4>
-                  {selectedUnit.vehicles.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedUnit.vehicles.map((v, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-blue-500/5 border border-amber-500/10">
-                          <p className="text-sm font-bold text-text-primary">{v.brand} {v.model}</p>
-                          <p className="text-[10px] font-mono text-primary-600 mt-1 uppercase tracking-wider">{v.plate}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-text-muted italic">No hay vehículos declarados.</p>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-bold text-text-primary uppercase tracking-widest flex items-center gap-2">
+                      <Car className="h-4 w-4 text-blue-500" /> Vehículos
+                    </h4>
+                    {isEditing && (
+                      <button 
+                        onClick={() => {
+                          if (editForm) {
+                            setEditForm({
+                              ...editForm,
+                              vehicles: [...editForm.vehicles, { brand: '', model: '', plate: '' }]
+                            });
+                          }
+                        }}
+                        className="text-xs font-bold text-primary-600"
+                      >
+                        + Agregar
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {(isEditing ? editForm?.vehicles : selectedUnit.vehicles)?.map((v, i) => (
+                      <div key={i} className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                        {isEditing ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <input className="text-sm font-bold bg-transparent border-b w-1/2 outline-none" value={v.brand} placeholder="Marca" onChange={e => { const newV = [...editForm!.vehicles]; newV[i].brand = e.target.value; handleEditChange('vehicles', newV); }} />
+                              <input className="text-sm font-bold bg-transparent border-b w-1/2 outline-none" value={v.model} placeholder="Modelo" onChange={e => { const newV = [...editForm!.vehicles]; newV[i].model = e.target.value; handleEditChange('vehicles', newV); }} />
+                              <button onClick={() => { const newV = [...editForm!.vehicles]; newV.splice(i, 1); handleEditChange('vehicles', newV); }} className="text-error-500"><X className="h-4 w-4"/></button>
+                            </div>
+                            <input className="text-[10px] font-mono text-primary-600 mt-1 uppercase bg-transparent border-b outline-none w-1/2" value={v.plate} placeholder="Patente" onChange={e => { const newV = [...editForm!.vehicles]; newV[i].plate = e.target.value; handleEditChange('vehicles', newV); }} />
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm font-bold text-text-primary">{v.brand} {v.model}</p>
+                            <p className="text-[10px] font-mono text-primary-600 mt-1 uppercase tracking-wider">{v.plate}</p>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                    {(!isEditing && selectedUnit.vehicles.length === 0) && (
+                      <p className="text-xs text-text-muted italic">No hay vehículos declarados.</p>
+                    )}
+                  </div>
                 </section>
               </div>
             </div>
 
             <div className="px-8 py-4 bg-background-warm border-t border-border flex justify-end gap-3 shrink-0">
-              <Button variant="secondary" onClick={() => setSelectedUnit(null)}>Cerrar</Button>
-              <Button>Editar Ficha</Button>
+              <Button variant="secondary" onClick={() => {
+                if (isEditing) {
+                  setIsEditing(false);
+                  setEditForm(JSON.parse(JSON.stringify(selectedUnit)));
+                } else {
+                  setSelectedUnit(null);
+                }
+              }} disabled={isSaving}>
+                {isEditing ? 'Cancelar' : 'Cerrar'}
+              </Button>
+              {isEditing ? (
+                <Button onClick={handleSaveEdit} disabled={isSaving}>
+                  {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                </Button>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>Editar Ficha</Button>
+              )}
             </div>
           </Card>
         </div>

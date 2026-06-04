@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -11,10 +11,18 @@ import { Card } from '@/components/ui/Card';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const err = searchParams.get('error');
+    if (err === 'invalid_token' || err === 'invalid_code') {
+      setError('El link de acceso es inválido o ya expiró. Pedí una nueva invitación al administrador.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
