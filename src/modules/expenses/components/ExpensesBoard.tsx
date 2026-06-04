@@ -154,15 +154,15 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
             <p className="text-text-secondary mt-1">Detalle financiero y estado de cuenta de tu unidad.</p>
           </div>
           {unitsData.length > 1 && (
-            <div className="flex gap-2 p-1 bg-background-warm rounded-xl border border-border-light shadow-inner w-fit">
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-inner w-fit">
               {unitsData.map((data, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedUnitIndex(index)}
                   className={`py-2 px-4 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     selectedUnitIndex === index
-                      ? 'bg-white shadow-sm text-primary-600'
-                      : 'text-text-muted hover:text-text-primary'
+                      ? 'bg-emerald-900 shadow-sm text-emerald-50'
+                      : 'text-slate-500 hover:text-emerald-900'
                   }`}
                 >
                   {data.unit.name.toLowerCase().includes('cochera') ? '🚗' : '🏢'} {data.unit.name}
@@ -171,16 +171,16 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
             </div>
           )}
         </div>
-        <div className="flex bg-background-warm p-1 rounded-xl border border-border-light shadow-inner">
+        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
           <button 
             onClick={() => setActiveTab('current')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'current' ? 'bg-white shadow-md text-primary-600' : 'text-text-muted hover:text-text-primary'}`}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'current' ? 'bg-emerald-900 shadow-md text-emerald-50' : 'text-slate-500 hover:text-emerald-900'}`}
           >
             Liquidación Actual
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-white shadow-md text-primary-600' : 'text-text-muted hover:text-text-primary'}`}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-emerald-900 shadow-md text-emerald-50' : 'text-slate-500 hover:text-emerald-900'}`}
           >
             Análisis Histórico
           </button>
@@ -283,7 +283,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                     href={currentExpense.pdf_url} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-6 bg-primary-600 hover:bg-primary-700 text-white rounded-[2rem] shadow-2xl shadow-primary-500/30 transition-all active:scale-[0.97] group"
+                    className="flex items-center justify-between p-6 bg-emerald-900 hover:bg-emerald-950 text-emerald-50 rounded-[2rem] shadow-2xl shadow-emerald-900/30 transition-all active:scale-[0.97] group"
                   >
                     <div className="flex items-center gap-5">
                       <div className="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform">
@@ -313,14 +313,14 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                      <Card 
                         padding="md" 
                         onClick={() => setIsPaymentModalOpen(true)}
-                        className="bg-primary-50 border-primary-100 border-2 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer group"
+                        className="bg-emerald-50 border-emerald-100 border-2 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer group"
                       >
-                        <div className="h-12 w-12 bg-primary-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform">
+                        <div className="h-12 w-12 bg-emerald-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-700/20 group-hover:scale-110 transition-transform">
                           <Upload className="h-6 w-6" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-primary-700 uppercase tracking-widest mb-0.5">Informar Pago</p>
-                          <p className="text-sm font-black text-primary-900 tracking-tight">Subir comprobante</p>
+                          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-0.5">Informar Pago</p>
+                          <p className="text-sm font-black text-emerald-950 tracking-tight">Subir comprobante</p>
                         </div>
                      </Card>
                   </div>
@@ -328,8 +328,8 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
               </Card>
 
               {/* AI INSIGHTS SECTION */}
-              <Card padding="none" className="overflow-hidden border-primary-100 bg-gradient-to-br from-primary-50/50 to-transparent">
-                <div className="px-6 py-4 bg-primary-600 text-white flex items-center gap-2">
+              <Card padding="none" className="overflow-hidden border-emerald-100 bg-gradient-to-br from-emerald-50/50 to-transparent">
+                <div className="px-6 py-4 bg-emerald-900 text-emerald-50 flex items-center gap-2">
                   <Lightbulb className="h-5 w-5 animate-pulse" />
                   <h3 className="font-display font-bold text-lg">IA Insights: Análisis del Mes</h3>
                 </div>
@@ -401,9 +401,9 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
 
             {/* Sidebar Column */}
             <div className="space-y-6">
-              <Card padding="lg" className="bg-primary-900 text-white border-none shadow-xl">
+              <Card padding="lg" className="bg-slate-900 text-white border-none shadow-xl">
                 <h3 className="font-black text-lg mb-6 flex items-center gap-2">
-                  <History className="h-5 w-5 text-primary-400" /> Resumen General
+                  <History className="h-5 w-5 text-emerald-400" /> Resumen General
                 </h3>
                 <div className="space-y-5">
                   <div className="flex justify-between items-center text-sm opacity-90">
@@ -460,7 +460,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
           {/* Historical Evolution Chart Simulation */}
           <Card padding="lg">
             <h3 className="font-display font-bold text-lg text-text-primary mb-8 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary-500" /> Evolución de Expensas (6 meses)
+              <BarChart3 className="h-5 w-5 text-emerald-600" /> Evolución de Expensas (6 meses)
             </h3>
             <div className="flex h-72 w-full gap-2">
               {/* Y-axis Reference */}
@@ -487,13 +487,13 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                          ${item.amount.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                        </div>
                        <div 
-                         className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 hover:scale-x-110 relative overflow-hidden ${i === history.length - 1 ? 'bg-primary-600 shadow-neon-primary' : isDown ? 'bg-success-500' : 'bg-slate-300 group-hover:bg-primary-400'}`}
+                         className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 hover:scale-x-110 relative overflow-hidden ${i === history.length - 1 ? 'bg-emerald-700 shadow-[0_0_15px_rgba(4,120,87,0.5)]' : isDown ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-emerald-500'}`}
                          style={{ height: `${heightPct}%` }}
                        >
                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                        </div>
                      </div>
-                     <span className={`absolute -bottom-8 text-[10px] font-black uppercase tracking-tighter ${i === history.length - 1 ? 'text-primary-600' : 'text-text-muted'}`}>
+                     <span className={`absolute -bottom-8 text-[10px] font-black uppercase tracking-tighter ${i === history.length - 1 ? 'text-emerald-800' : 'text-slate-500'}`}>
                        {item.shortMonth}
                      </span>
                    </div>
@@ -538,7 +538,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                         </div>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <button className="p-3 text-primary-600 hover:bg-primary-100 rounded-2xl transition-all shadow-sm bg-primary-50">
+                        <button className="p-3 text-emerald-700 hover:bg-emerald-100 rounded-2xl transition-all shadow-sm bg-emerald-50">
                           <Download className="h-5 w-5" />
                         </button>
                       </td>
@@ -568,7 +568,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
               </div>
             ) : (
               <form onSubmit={handlePaymentSubmit} className="flex flex-col flex-grow overflow-hidden">
-                <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-primary-600 text-white shrink-0">
+                <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-emerald-900 text-white shrink-0">
                   <div>
                     <h3 className="font-display font-bold text-lg">Informar Pago</h3>
                     <p className="text-[10px] uppercase font-bold opacity-70 tracking-widest">Unidad {currentExpense.unit}</p>
@@ -622,7 +622,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                   <Button 
                     type="submit" 
                     disabled={isSubmitting || !paymentFile} 
-                    className="bg-primary-600 hover:bg-primary-700 text-white min-w-[160px] rounded-xl h-12 shadow-lg shadow-primary-500/20"
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white min-w-[160px] rounded-xl h-12 shadow-lg shadow-emerald-700/20"
                   >
                     {isSubmitting ? 'Verificando...' : 'Informar Pago'}
                   </Button>
