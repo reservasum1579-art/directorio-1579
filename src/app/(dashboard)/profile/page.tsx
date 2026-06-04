@@ -17,11 +17,13 @@ export default async function ProfilePage() {
   }
 
   // Fetch profile
-  const { data: profileData } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from('profiles')
-    .select('id, first_name, last_name, phone, avatar_url, floor, unit_id, garage_id, garage_label')
-    .eq('id', user.id)
+    .select('id, first_name, last_name, phone, avatar_url, floor, unit_id, garage_id')
+    .eq('id', user!.id)
     .single() as any;
+
+  if (profileError) console.error('Profile fetch error:', profileError);
 
   // Fetch all units for garage lookup and list display
   const { data: unitsData } = await supabase
@@ -31,12 +33,10 @@ export default async function ProfilePage() {
 
   // Resolve garage display name using unitsData
   let garageDisplay = 'Sin asignar';
-  if (profileData?.garage_label) {
-    garageDisplay = profileData.garage_label;
-  } else if (profileData?.garage_id && unitsData) {
+  if (profileData?.garage_id && unitsData) {
     const garage = unitsData.find((u:any) => u.id === profileData.garage_id);
     if (garage) {
-      garageDisplay = garage.unit_number ? `${garage.floor}° ${garage.unit_number}` : `Cochera ${garage.id}`;
+      garageDisplay = garage.unit_number ? `${garage.floor}° ${garage.unit_number}` : `Cochera ${garage.floor}`;
     }
   }
 
@@ -67,22 +67,6 @@ export default async function ProfilePage() {
   return (
     <>
       <ProfileClient initialProfile={initialProfile} />
-      {/* Lista de departamentos */}
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Departamentos</h2>
-        {unitsData?.length ? (
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {unitsData.map((unit:any) => (
-              <li key={unit.id} className="p-4 bg-gray-100 rounded shadow">
-                <p className="font-medium">Piso {unit.floor}</p>
-                <p>Unidad {unit.unit_number}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No hay departamentos registrados.</p>
-        )}
-      </section>
     </>
   );
 }
