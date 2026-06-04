@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -56,6 +56,60 @@ export default function LoginPage() {
 
   return (
     <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Email"
+          type="email"
+          placeholder="tu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          icon={<Mail className="h-4 w-4" />}
+          required
+          autoComplete="email"
+        />
+
+        <Input
+          label="Contraseña"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          icon={<Lock className="h-4 w-4" />}
+          required
+          autoComplete="current-password"
+        />
+
+        {error && (
+          <div className="p-3 rounded-[--radius-md] bg-error-50 border border-error-500/20">
+            <p className="text-sm text-error-700">{error}</p>
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          fullWidth
+          loading={loading}
+          size="lg"
+        >
+          Ingresar
+        </Button>
+      </form>
+
+      <div className="mt-4 text-center">
+        <Link
+          href="/forgot-password"
+          className="text-sm text-primary-500 hover:text-primary-700 transition-colors"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <>
       <Card padding="lg" className="shadow-lg">
         <h2 className="font-display text-xl font-semibold text-text-primary mb-1">
           Iniciar sesión
@@ -64,53 +118,9 @@ export default function LoginPage() {
           Ingresá con tu cuenta del edificio
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            icon={<Mail className="h-4 w-4" />}
-            required
-            autoComplete="email"
-          />
-
-          <Input
-            label="Contraseña"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="h-4 w-4" />}
-            required
-            autoComplete="current-password"
-          />
-
-          {error && (
-            <div className="p-3 rounded-[--radius-md] bg-error-50 border border-error-500/20">
-              <p className="text-sm text-error-700">{error}</p>
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            size="lg"
-          >
-            Ingresar
-          </Button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary-500 hover:text-primary-700 transition-colors"
-          >
-            ¿Olvidaste tu contraseña?
-          </Link>
-        </div>
+        <Suspense fallback={<div className="h-64 flex items-center justify-center">Cargando...</div>}>
+          <LoginForm />
+        </Suspense>
       </Card>
 
       <p className="text-center text-xs text-text-muted mt-6">
