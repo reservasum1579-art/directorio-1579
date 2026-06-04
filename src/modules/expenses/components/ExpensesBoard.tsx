@@ -446,7 +446,7 @@ export function ExpensesBoard({ unitsData }: ExpensesBoardProps) {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-black text-text-muted uppercase tracking-tighter">Administrador</p>
-                  <p className="text-sm font-black text-text-primary truncate">Alex Sterling</p>
+                  <p className="text-sm font-black text-text-primary truncate">Administración</p>
                 </div>
                 <div className="ml-auto bg-slate-100 p-2 rounded-xl group-hover:bg-primary-500 group-hover:text-white transition-colors">
                   <ArrowUpRight className="h-4 w-4" />

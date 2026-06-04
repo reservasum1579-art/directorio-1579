@@ -1,5 +1,5 @@
-'use client';
-
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -12,29 +12,24 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { settingsService, BuildingSettings } from '@/modules/admin/services/settings.service';
 
-export default function DashboardPage() {
-  const [settings, setSettings] = useState<BuildingSettings | null>(null);
-  const [userName, setUserName] = useState('Alex');
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    // Load dynamic name from profile
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('user_profile');
-      if (saved) {
-        const profile = JSON.parse(saved);
-        setUserName(profile.first_name || 'Alex');
-      }
-    }
-    const loadSettings = () => {
-      setSettings(settingsService.getSettings());
-    };
-    loadSettings();
-    window.addEventListener('building_settings_updated', loadSettings);
-    return () => window.removeEventListener('building_settings_updated', loadSettings);
-  }, []);
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('id', user.id)
+    .single() as any;
+
+  const userName = profile?.first_name || user.user_metadata?.full_name?.split(' ')[0] || 'vecino/a';
+  const settings = settingsService.getSettings();
 
   // MOCK DATA FOR DEMO
   const announcements = [
