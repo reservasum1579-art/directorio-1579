@@ -1,4 +1,4 @@
-export type AnnouncementStatus = 'draft' | 'published' | 'archived';
+export type AnnouncementStatus = 'draft' | 'pending' | 'published' | 'archived';
 
 export interface AnnouncementAttachment {
   id: string;
@@ -17,6 +17,7 @@ export interface Announcement {
   content: string;
   is_important: boolean;
   status: AnnouncementStatus;
+  event_date?: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;

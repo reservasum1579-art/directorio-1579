@@ -1,69 +1,98 @@
 import { createClient } from '@/lib/supabase/client';
-import type { Announcement } from '../types/news.types';
+import type { Announcement, AnnouncementStatus } from '../types/news.types';
 
 export const newsService = {
   /**
-   * Obtiene todas las noticias publicadas para un edificio, ordenadas de las más recientes a las más antiguas.
+   * Obtiene noticias con paginación y filtro por estado.
    */
-  async getPublishedAnnouncements(buildingId: string): Promise<Announcement[]> {
-    // MOCK DATA FOR DEMO
-    return [
-      {
-        id: '1',
-        building_id: buildingId,
-        author_id: 'mock',
-        title: 'New Security Rules',
-        content: 'Enhanced biometric access protocols are being implemented at all main entrance points starting next Monday. Please ensure your digital profile is updated.',
-        is_important: true,
-        status: 'published',
-        published_at: '2023-10-24T10:00:00Z',
-        created_at: '2023-10-24T10:00:00Z',
-        updated_at: '2023-10-24T10:00:00Z',
-        announcement_attachments: [{
-          id: 'att1',
-          announcement_id: '1',
-          file_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC2qhz9wWfW7iuZCDnOjZ502ELhrBkPaTpT_m5-x0uKmSSKJqlWenzg1HN6_P3hjSIPtJDZJ5G-GzeCiCah22FsEBISat0N6K1oxmqCtOSXnb48IwE_mDbdIcS-SPQRakxn2yNecBSb11BEe9TSixlL5Hbinve43V7N-QYFGMwlhthzFAlWy0juQ9FXfFEM6M_HCEqb8Udi8aCPbSm2fWkZ4-5GKcnJzLGqNbfI9udaBWkiRT0jFvVIwl-mZI8eWX3CfLWMgI9fNIM5',
-          file_type: 'image/jpeg',
-          file_name: 'security.jpg',
-          created_at: '2023-10-24T10:00:00Z'
-        }]
-      },
-      {
-        id: '2',
-        building_id: buildingId,
-        author_id: 'mock',
-        title: 'Pool Opening Schedule',
-        content: 'The rooftop infinity pool will transition to summer hours. Morning swimming will now be available from 5:00 AM for all residents.',
-        is_important: false,
-        status: 'published',
-        published_at: '2023-10-22T10:00:00Z',
-        created_at: '2023-10-22T10:00:00Z',
-        updated_at: '2023-10-22T10:00:00Z'
-      },
-      {
-        id: '3',
-        building_id: buildingId,
-        author_id: 'mock',
-        title: 'Next Assembly Meeting',
-        content: 'The annual general assembly will take place in the Main Hall. Discussion topics include budget allocation for the new smart energy grid.',
-        is_important: false,
-        status: 'published',
-        published_at: '2023-10-20T10:00:00Z',
-        created_at: '2023-10-20T10:00:00Z',
-        updated_at: '2023-10-20T10:00:00Z'
-      },
-      {
-        id: '4',
-        building_id: buildingId,
-        author_id: 'mock',
-        title: 'Elevator Maintenance: Tower B',
-        content: 'Preventative maintenance on elevator #4 will take place between 10 PM and 2 AM. Residents are advised to use alternate service lifts.',
-        is_important: false,
-        status: 'published',
-        published_at: '2023-10-18T10:00:00Z',
-        created_at: '2023-10-18T10:00:00Z',
-        updated_at: '2023-10-18T10:00:00Z'
+  async getAnnouncements(
+    buildingId: string,
+    options?: {
+      status?: AnnouncementStatus | AnnouncementStatus[];
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<{ data: Announcement[], count: number }> {
+    const supabase = createClient();
+    
+    let query = supabase
+      .from('announcements')
+      .select(`
+        *,
+        profiles:author_id (first_name, last_name, avatar_url),
+        announcement_attachments (*)
+      `, { count: 'exact' })
+      .eq('building_id', buildingId)
+      // Urgent news first, then newest
+      .order('is_important', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (options?.status) {
+      if (Array.isArray(options.status)) {
+        query = query.in('status', options.status);
+      } else {
+        query = query.eq('status', options.status);
       }
-    ];
+    }
+
+    const limit = options?.limit ?? 10;
+    const offset = options?.offset ?? 0;
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching announcements:', error);
+      throw error;
+    }
+    
+    return { data: data as Announcement[], count: count || 0 };
+  },
+
+  /**
+   * Crea una nueva noticia.
+   * Supabase RLS rechazará si un no-admin intenta crear una noticia 'published' o 'is_important=true'.
+   */
+  async createAnnouncement(data: Partial<Announcement>): Promise<Announcement> {
+    const supabase = createClient();
+    const { data: result, error } = await supabase
+      .from('announcements')
+      .insert({ ...data })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result as Announcement;
+  },
+
+  /**
+   * Actualiza el estado o contenido de una noticia.
+   */
+  async updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement> {
+    const supabase = createClient();
+    const { data: result, error } = await supabase
+      .from('announcements')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result as Announcement;
+  },
+
+  /**
+   * Elimina una noticia.
+   */
+  async deleteAnnouncement(id: string): Promise<boolean> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('announcements')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   }
 };

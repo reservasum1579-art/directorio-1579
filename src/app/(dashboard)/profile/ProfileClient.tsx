@@ -21,6 +21,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { createClient } from '@/lib/supabase/client';
+import { profileService } from '@/modules/auth/services/auth.service';
 
 interface ProfileClientProps {
   initialProfile: {
@@ -102,14 +103,28 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
   // Deprecated: individual unit/garage save replaced by combined save function
   const handleUnitSave = async () => {};
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile(prev => ({ ...prev, avatar_url: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsSaving(true);
+        // Optimistic update
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfile(prev => ({ ...prev, avatar_url: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+
+        // Actual upload
+        const newUrl = await profileService.uploadAvatar(initialProfile.id, file);
+        setProfile(prev => ({ ...prev, avatar_url: newUrl }));
+        alert('Imagen de perfil actualizada.');
+      } catch (error: any) {
+        console.error('Error uploading avatar:', error);
+        alert(`Error al subir la imagen: ${error.message || JSON.stringify(error)}`);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 

@@ -12,6 +12,8 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
+import { DEFAULT_BUILDING_ID } from '@/lib/constants';
+import type { Announcement } from '@/modules/news/types/news.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,23 +40,21 @@ export default async function DashboardPage() {
     { label: 'Bomberos / Policía', number: '911' }
   ];
 
-  // MOCK DATA FOR DEMO
-  const announcements = [
-    { 
-      id: '1', 
-      title: 'Mantenimiento del ascensor principal', 
-      is_important: true, 
-      published_at: new Date().toISOString(),
-      image_url: 'https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=200'
-    },
-    { 
-      id: '2', 
-      title: 'Reunión de consorcio mensual', 
-      is_important: false, 
-      published_at: new Date().toISOString(),
-      image_url: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80&w=200'
-    },
-  ];
+  // Fetch real announcements (max 3 for dashboard widget) — server side
+  let announcements: Announcement[] = [];
+  try {
+    const { data } = await supabase
+      .from('announcements')
+      .select('*, announcement_attachments(*)')
+      .eq('building_id', DEFAULT_BUILDING_ID)
+      .eq('status', 'published')
+      .order('is_important', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(3);
+    announcements = (data || []) as Announcement[];
+  } catch (e) {
+    console.error('Error fetching dashboard announcements:', e);
+  }
 
   const userStatus = {
     has_debt: false,
@@ -205,41 +205,48 @@ export default async function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              {announcements.map((ann) => (
-                <Link key={ann.id} href={`/news`}>
-                  <Card hoverable padding="none" className="flex items-stretch overflow-hidden">
-                    <div className="w-20 sm:w-24 bg-background-warm shrink-0 relative overflow-hidden">
-                      {ann.image_url ? (
-                        <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Newspaper className="h-5 w-5 text-text-muted opacity-30" />
-                        </div>
-                      )}
-                      {ann.is_important && (
-                        <div className="absolute top-0 left-0 bg-error-500 text-white text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-br-lg shadow-lg">
-                          Urgente
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 p-3 min-w-0 flex flex-col justify-center">
-                      <p className="text-sm font-medium text-text-primary truncate">
-                        {ann.title}
-                      </p>
-                      <p className="text-xs text-text-muted mt-0.5">
-                        {new Date(ann.published_at).toLocaleDateString('es-AR', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex items-center px-4">
-                      <ArrowRight className="h-4 w-4 text-text-muted shrink-0" />
-                    </div>
-                  </Card>
-                </Link>
-              ))}
+              {announcements.length === 0 ? (
+                <div className="text-center py-8 text-text-muted text-sm">
+                  <Newspaper className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                  No hay noticias publicadas aún.
+                </div>
+              ) : (
+                announcements.map((ann) => (
+                  <Link key={ann.id} href="/news">
+                    <Card hoverable padding="none" className="flex items-stretch overflow-hidden">
+                      <div className="w-20 sm:w-24 bg-background-warm shrink-0 relative overflow-hidden">
+                        {ann.announcement_attachments?.[0]?.file_url ? (
+                          <img src={ann.announcement_attachments[0].file_url} alt={ann.title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Newspaper className="h-5 w-5 text-text-muted opacity-30" />
+                          </div>
+                        )}
+                        {ann.is_important && (
+                          <div className="absolute top-0 left-0 bg-error-500 text-white text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-br-lg shadow-lg">
+                            Urgente
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 p-3 min-w-0 flex flex-col justify-center">
+                        <p className="text-sm font-medium text-text-primary truncate">
+                          {ann.title}
+                        </p>
+                        <p suppressHydrationWarning className="text-xs text-text-muted mt-0.5">
+                          {new Date(ann.published_at || ann.created_at).toLocaleDateString('es-AR', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex items-center px-4">
+                        <ArrowRight className="h-4 w-4 text-text-muted shrink-0" />
+                      </div>
+                    </Card>
+                  </Link>
+                ))
+              )}
             </div>
           </section>
         </div>

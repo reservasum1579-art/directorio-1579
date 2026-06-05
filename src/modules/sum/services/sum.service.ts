@@ -135,13 +135,32 @@ export const sumService = {
   // -----------------------------------------------------
 
   /**
-   * Obtiene las reglas del SUM (MOCKED - Estructura corregida para el Modal)
+   * Obtiene las reglas del SUM desde la base de datos
    */
   async getSumRules(buildingId: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('sum_rules')
+      .select('rule_key, rule_value')
+      .eq('building_id', buildingId);
+
+    if (error) {
+      console.error('Error fetching sum_rules:', error);
+      throw error;
+    }
+
+    const rules: Record<string, any> = {};
+    if (data) {
+      data.forEach(row => {
+        rules[row.rule_key] = row.rule_value;
+      });
+    }
+
+    // Default fallbacks in case table is empty
     return {
-      pricing: { morning: 3000, night: 5000, full_day: 7000, deposit: 10000 },
-      limits: { max_capacity: 30, min_cancel_hours: 24, max_per_month: 2 },
-      shifts: { 
+      pricing: rules.pricing || { morning: 3000, night: 5000, full_day: 7000, deposit: 10000 },
+      limits: rules.limits || { max_capacity: 30, min_cancel_hours: 24, max_per_month: 2 },
+      shifts: rules.shifts || { 
         morning: { start: '10:00', end: '17:00' }, 
         night: { start: '20:00', end: '01:00' } 
       }

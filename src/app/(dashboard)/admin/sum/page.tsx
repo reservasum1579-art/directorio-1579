@@ -7,12 +7,17 @@ import { useEffect, useState } from 'react';
 
 export default function AdminSumPage() {
   const [pendingReservations, setPendingReservations] = useState<any[]>([]);
+  const [rules, setRules] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await sumService.getPendingReservations(DEFAULT_BUILDING_ID);
+      const [data, rulesData] = await Promise.all([
+        sumService.getPendingReservations(DEFAULT_BUILDING_ID),
+        sumService.getSumRules(DEFAULT_BUILDING_ID)
+      ]);
       setPendingReservations(data);
+      setRules(rulesData);
       setLoading(false);
     };
     fetchData();
@@ -21,6 +26,6 @@ export default function AdminSumPage() {
   if (loading) return <div className="p-10 text-center text-text-muted">Cargando gestión...</div>;
 
   return (
-    <AdminSumDashboard initialPending={pendingReservations} />
+    <AdminSumDashboard initialPending={pendingReservations} initialRules={rules} />
   );
 }

@@ -26,15 +26,39 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
+import { updateSumRulesAction } from '../actions/sum.actions';
+import { DEFAULT_BUILDING_ID } from '@/lib/constants';
+
 interface AdminSumDashboardProps {
   initialPending: SumReservation[];
+  initialRules: any;
 }
 
-export function AdminSumDashboard({ initialPending }: AdminSumDashboardProps) {
+export function AdminSumDashboard({ initialPending, initialRules }: AdminSumDashboardProps) {
   const [reservations, setReservations] = useState<any[]>(initialPending);
+  const [rules, setRules] = useState(initialRules);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
-  const [prices, setPrices] = useState({ morning: 3000, night: 5000 });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [prices, setPrices] = useState({ 
+    morning: initialRules?.pricing?.morning || 3000, 
+    night: initialRules?.pricing?.night || 5000 
+  });
+
+  const handleUpdatePrices = async () => {
+    setIsUpdating(true);
+    try {
+      const newPricing = { ...rules.pricing, morning: prices.morning, night: prices.night };
+      await updateSumRulesAction(DEFAULT_BUILDING_ID, 'pricing', newPricing);
+      setRules({ ...rules, pricing: newPricing });
+      setIsPriceModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Error al actualizar precios');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const filteredReservations = useMemo(() => {
     return reservations.filter(res => {
@@ -262,7 +286,8 @@ export function AdminSumDashboard({ initialPending }: AdminSumDashboardProps) {
             <div className="px-6 py-5 border-t border-white/5 bg-background-warm/50 flex justify-end gap-3 shrink-0">
               <Button variant="ghost" onClick={() => setIsPriceModalOpen(false)}>Cancelar</Button>
               <Button 
-                onClick={() => setIsPriceModalOpen(false)} 
+                onClick={handleUpdatePrices} 
+                loading={isUpdating}
                 className="bg-primary-600 hover:bg-primary-700 text-white px-6 rounded-xl font-black text-xs uppercase"
               >
                 Actualizar Precios
