@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 config({ path: '.env.local' });
 
 async function main() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('units')
     .select('id, floor, unit_number')

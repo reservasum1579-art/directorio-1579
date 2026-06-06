@@ -5,7 +5,7 @@ import { Calendar, ArrowRight, Bell, Zap, Construction, ShieldAlert, Archive, Pl
 import type { Announcement } from '../types/news.types';
 import { formatShortDate, formatDateTime } from '@/lib/utils';
 import { newsService } from '../services/news.service';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import { NewsEditorModal } from './NewsEditorModal';
 import { createNewsAction, updateNewsAction } from '../actions/news.actions';
 import { AnnouncementDetailModal } from './AnnouncementDetailModal';
