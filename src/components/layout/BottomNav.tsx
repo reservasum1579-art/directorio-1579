@@ -9,6 +9,7 @@ import {
   Newspaper,
   User,
   Receipt,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +17,7 @@ const navItems = [
   { label: 'Inicio', href: '/', icon: Home },
   { label: 'SUM', href: '/sum', icon: CalendarDays },
   { label: 'Expensas', href: '/expenses', icon: Receipt },
-  { label: 'Market', href: '/marketplace', icon: Store },
+  { label: 'Docs', href: '/documents', icon: FolderOpen },
   { label: 'Perfil', href: '/profile', icon: User },
 ];
 

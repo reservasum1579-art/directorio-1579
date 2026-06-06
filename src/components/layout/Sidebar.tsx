@@ -20,6 +20,7 @@ import {
   ChevronRight,
   LogOut,
   Wrench,
+  FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -30,6 +31,7 @@ const mainNav = [
   { label: 'SUM', href: '/sum', icon: CalendarDays },
   { label: 'Marketplace', href: '/marketplace', icon: Store },
   { label: 'Noticias', href: '/news', icon: Newspaper },
+  { label: 'Documentos', href: '/documents', icon: FolderOpen },
   { label: 'Contactos', href: '/contacts', icon: Phone },
   { label: 'Expensas', href: '/expenses', icon: Receipt },
   { label: 'Mi Perfil', href: '/profile', icon: User },
@@ -41,6 +43,7 @@ const adminNav = [
   { label: 'Departamentos', href: '/admin/units', icon: Building2 },
   { label: 'Gestión SUM', href: '/admin/sum', icon: Shield },
   { label: 'Gestión Expensas', href: '/admin/expenses', icon: Receipt },
+  { label: 'Documentos', href: '/admin/documents', icon: FolderOpen },
   { label: 'Moderación', href: '/admin/marketplace', icon: FileEdit },
   { label: 'Noticias', href: '/admin/news', icon: Newspaper },
   { label: 'Mantenimiento', href: '/admin/maintenance', icon: Wrench },
