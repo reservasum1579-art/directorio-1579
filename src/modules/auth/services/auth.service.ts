@@ -79,12 +79,15 @@ export const profileService = {
       .from('avatars')
       .getPublicUrl(path);
 
+    // Append timestamp to bust browser cache on identical URLs
+    const finalUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
     // Update profile with new avatar URL
     await supabase
       .from('profiles')
-      .update({ avatar_url: urlData.publicUrl })
+      .update({ avatar_url: finalUrl })
       .eq('id', profileId);
 
-    return urlData.publicUrl;
+    return finalUrl;
   },
 };
