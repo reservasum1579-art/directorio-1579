@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   },
   description:
     'Plataforma de gestión consorcial para residentes de Directorio 1579. Reservas SUM, expensas, marketplace y más.',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
