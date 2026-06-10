@@ -20,14 +20,21 @@ export function DashboardShell({ profile: initialProfile, isAdmin, unit, childre
   const [profile, setProfile] = useState(initialProfile);
 
   useEffect(() => {
-    // Sync with localStorage if available
+    // Sync with localStorage
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('user_profile');
-      if (saved) {
-        setProfile(JSON.parse(saved));
+      if (initialProfile) {
+        // Update local storage with fresh server data
+        localStorage.setItem('user_profile', JSON.stringify(initialProfile));
+        setProfile(initialProfile);
+      } else {
+        // Fallback to local storage if server data is missing
+        const saved = localStorage.getItem('user_profile');
+        if (saved) {
+          setProfile(JSON.parse(saved));
+        }
       }
     }
-  }, []);
+  }, [initialProfile]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
