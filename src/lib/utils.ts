@@ -98,8 +98,8 @@ export function getInitials(firstName: string, lastName: string): string {
  * Format unit label (e.g., "1° A")
  */
 export function formatUnit(floor: string, unit: string): string {
-  if (floor === 'PB') return `PB ${unit}`;
-  return `${floor}° ${unit}`;
+  if (floor === 'PB') return `PB${unit}`;
+  return `${floor}${unit}`;
 }
 
 /**

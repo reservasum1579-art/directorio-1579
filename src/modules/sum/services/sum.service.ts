@@ -83,8 +83,8 @@ export const sumService = {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       // Agregamos info de la unidad para el calendario
-      units: { floor: '14', unit: 'B' }, // Mocking for the demo user
-      profiles: { first_name: 'Alex', last_name: 'Sterling' }
+      units: params.units || { floor: '1', unit: 'A' }, // Use provided unit info or sensible default
+      profiles: params.profiles || { first_name: 'Alex', last_name: 'Sterling' }
     };
     localStorage.setItem('demo_sum_reservations', JSON.stringify([...all, newRes]));
     return newRes as any;
@@ -117,7 +117,7 @@ export const sumService = {
     return all.map(r => ({
       ...r,
       profiles: r.profiles || { first_name: 'Vecino', last_name: 'Demo', phone: '11 1234-5678' },
-      units: r.units || { floor: '14', unit: 'B' }
+      units: r.units || { floor: r.units?.floor ?? '1', unit: r.units?.unit ?? 'A' }
     })) as any;
   },
 

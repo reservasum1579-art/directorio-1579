@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatUnit } from '@/lib/utils';
 import type { SumReservation } from '../types/sum.types';
 
 interface SumCalendarProps {
@@ -137,7 +137,7 @@ export function SumCalendar({
                     : (past ? "bg-transparent text-slate-400" : "bg-success-500/10 text-success-600 border border-success-500/20")
                 )}>
                   {availability.hasMorning 
-                    ? (availability.reservations.find(r => r.shift_type === 'morning' || r.shift_type === 'full_day')?.units?.floor || '') + (availability.reservations.find(r => r.shift_type === 'morning' || r.shift_type === 'full_day')?.units?.unit || '')
+                    ? (() => { const r = availability.reservations.find(r => r.shift_type === 'morning' || r.shift_type === 'full_day'); return r?.units ? formatUnit(r.units.floor, r.units.unit) : ''; })()
                     : (past ? "-" : "LIBRE")}
                 </div>
                 
@@ -148,7 +148,7 @@ export function SumCalendar({
                     : (past ? "bg-transparent text-slate-400" : "bg-success-500/10 text-success-600 border border-success-500/20")
                 )}>
                   {availability.hasNight 
-                    ? (availability.reservations.find(r => r.shift_type === 'night' || r.shift_type === 'full_day')?.units?.floor || '') + (availability.reservations.find(r => r.shift_type === 'night' || r.shift_type === 'full_day')?.units?.unit || '')
+                    ? (() => { const r = availability.reservations.find(r => r.shift_type === 'night' || r.shift_type === 'full_day'); return r?.units ? formatUnit(r.units.floor, r.units.unit) : ''; })()
                     : (past ? "-" : "LIBRE")}
                 </div>
               </div>

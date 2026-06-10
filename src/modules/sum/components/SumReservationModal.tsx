@@ -52,6 +52,11 @@ export function SumReservationModal({
       return;
     }
 
+    // Determinar el piso y departamento seleccionado
+    const selectedUnitObj = userUnits.find(u => u.unit_id === selectedUnit);
+    const floor = selectedUnitObj?.units?.floor || '';
+    const unit = selectedUnitObj?.units?.unit || '';
+
     try {
       setLoading(true);
       setError('');
@@ -66,6 +71,7 @@ export function SumReservationModal({
       await sumService.createReservation({
         building_id: DEFAULT_BUILDING_ID,
         unit_id: selectedUnit,
+        units: { floor, unit },
         reservation_date: selectedDate,
         shift_type: shiftType,
         start_time: startTime,
@@ -80,6 +86,7 @@ export function SumReservationModal({
         id: Math.random().toString(36).substr(2, 9),
         building_id: DEFAULT_BUILDING_ID,
         unit_id: selectedUnit,
+        units: { floor, unit },
         reservation_date: selectedDate,
         shift_type: shiftType,
         start_time: startTime,

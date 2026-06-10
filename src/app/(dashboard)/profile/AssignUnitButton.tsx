@@ -17,7 +17,7 @@ export default function AssignUnitButton() {
       if (!res.ok) {
         setMessage(data.error ?? 'Error inesperado');
       } else {
-        setMessage(`Unidad asignada: ${data.unit?.floor}° ${data.unit?.unit_number}`);
+        setMessage(`Unidad asignada: ${formatUnit(data.unit?.floor || '', data.unit?.unit_number)}`);
       }
     } catch (e) {
       setMessage('Fallo al conectar con el servidor');

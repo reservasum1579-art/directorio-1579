@@ -1,5 +1,6 @@
 'use client';
 
+import { formatUnit } from '@/lib/utils';
 import {
   User,
   Mail,
@@ -146,10 +147,10 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
         .select('unit_id, garage_id, units(floor, unit_number), floor, unit')
         .eq('id', initialProfile.id)
         .single();
-      const unitLabel = refreshed?.units?.[0]?.unit_number
-        ? `${refreshed.units[0].floor}° ${refreshed.units[0].unit_number}`
+      const unitLabel = refreshed?.units?.[0]
+        ? formatUnit(refreshed.units[0].floor, refreshed.units[0].unit_number)
         : refreshed?.unit
-        ? `${refreshed.floor || ''}° ${refreshed.unit}`
+        ? formatUnit(refreshed.floor || '', refreshed.unit)
         : 'Sin asignar';
       const garageObj = availableGarages.find((g:any) => g.id === refreshed?.garage_id);
       const garageLabel = garageObj ? `${garageObj.floor}° ${garageObj.unit_number || garageObj.id}` : 'Sin asignar';
