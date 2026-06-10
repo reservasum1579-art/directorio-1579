@@ -10,10 +10,13 @@ import {
   Receipt,
   ArrowRight,
   ShieldAlert,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { DEFAULT_BUILDING_ID } from '@/lib/constants';
 import type { Announcement } from '@/modules/news/types/news.types';
+import { marketplaceService } from '@/modules/marketplace/services/marketplace.service';
+import type { MarketplacePost } from '@/modules/marketplace/types/marketplace.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +57,15 @@ export default async function DashboardPage() {
     announcements = (data || []) as Announcement[];
   } catch (e) {
     console.error('Error fetching dashboard announcements:', e);
+  }
+
+  // Fetch recent marketplace items
+  let marketplaceItems: MarketplacePost[] = [];
+  try {
+    const allItems = await marketplaceService.getActivePosts(DEFAULT_BUILDING_ID);
+    marketplaceItems = allItems.slice(0, 4);
+  } catch (e) {
+    console.error('Error fetching dashboard marketplace items:', e);
   }
 
   const userStatus = {
@@ -105,64 +117,54 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 stagger-children pb-20">
-      {/* Welcome Header */}
-      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-text-primary">
-            ¡Hola, {userName}! 👋
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Bienvenido a tu portal de {buildingName}.
-          </p>
-        </div>
-      </section>
-
-      {/* Resident Summary Widgets */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className={`border-none ${userStatus.has_debt ? 'bg-error-500' : 'bg-success-500'} text-white shadow-lg`}>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase opacity-80 tracking-widest">Estado de Expensas</p>
-              <h3 className="text-xl font-bold">
-                {userStatus.has_debt ? 'Tenés una expensa pendiente' : '¡Estás al día!'}
-              </h3>
-              <p className="text-xs opacity-90">
-                {userStatus.has_debt ? 'Vencimiento: 15 de Mayo' : 'Gracias por tu puntualidad.'}
-              </p>
+      {/* Compact Status Bar */}
+      <section>
+        <div className="glass bg-primary-50/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-primary-100">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+              <span className="text-primary-700 font-display font-bold text-lg">{userName.charAt(0)}</span>
             </div>
-            <Link href="/expenses">
-              <button className="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition-all">
-                <Receipt className="h-6 w-6" />
-              </button>
-            </Link>
+            <div>
+              <p className="text-xs text-text-muted font-medium">¡Qué bueno verte!</p>
+              <h2 className="font-display font-bold text-text-primary text-lg leading-tight">
+                Hola, {userName}
+              </h2>
+            </div>
           </div>
-        </Card>
-
-        {userStatus.next_reservation && (
-          <Card className="bg-primary-600 text-white border-none shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase opacity-80 tracking-widest">Próxima Reserva SUM</p>
-                <h3 className="text-xl font-bold">
-                  {userStatus.next_reservation.type}
-                </h3>
-                <p className="text-xs opacity-90">
-                  {new Date(userStatus.next_reservation.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })} • Turno {userStatus.next_reservation.shift}
+          
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
+            <Link href="/expenses" className="flex items-center gap-2 group">
+              <div className={`p-2 rounded-lg ${userStatus.has_debt ? 'bg-error-100 text-error-600' : 'bg-success-100 text-success-600'} transition-colors group-hover:scale-105`}>
+                <Receipt className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-text-muted">Expensas</p>
+                <p className="text-sm font-semibold text-text-primary">
+                  {userStatus.has_debt ? 'Pendiente' : 'Al día'}
                 </p>
               </div>
-              <Link href="/sum">
-                <button className="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition-all">
-                  <CalendarDays className="h-6 w-6" />
-                </button>
+            </Link>
+
+            {userStatus.next_reservation && (
+              <Link href="/sum" className="flex items-center gap-2 group">
+                <div className="p-2 rounded-lg bg-accent-100 text-accent-600 transition-colors group-hover:scale-105">
+                  <CalendarDays className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-text-muted">SUM</p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Hoy, 20:00 hs
+                  </p>
+                </div>
               </Link>
-            </div>
-          </Card>
-        )}
+            )}
+          </div>
+        </div>
       </section>
       {/* Quick Links Grid */}
       <section>
-        <h2 className="font-display text-base font-semibold text-text-primary mb-3">
-          Accesos rápidos
+        <h2 className="font-display text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+          <Zap className="h-6 w-6 text-primary-500" /> Accesos rápidos
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {quickLinks.map((link) => {
@@ -193,8 +195,8 @@ export default async function DashboardPage() {
           {/* Recent Announcements */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display text-base font-semibold text-text-primary">
-                Últimas noticias
+              <h2 className="font-display text-xl font-bold text-text-primary flex items-center gap-2">
+                <Newspaper className="h-6 w-6 text-primary-500" /> Últimas noticias
               </h2>
               <Link
                 href="/news"
@@ -204,44 +206,48 @@ export default async function DashboardPage() {
               </Link>
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {announcements.length === 0 ? (
-                <div className="text-center py-8 text-text-muted text-sm">
+                <div className="col-span-full text-center py-8 text-text-muted text-sm">
                   <Newspaper className="h-8 w-8 mx-auto mb-2 opacity-20" />
                   No hay noticias publicadas aún.
                 </div>
               ) : (
                 announcements.map((ann) => (
-                  <Link key={ann.id} href="/news">
-                    <Card hoverable padding="none" className="flex items-stretch overflow-hidden">
-                      <div className="w-20 sm:w-24 bg-background-warm shrink-0 relative overflow-hidden">
+                  <Link key={ann.id} href="/news" className="group">
+                    <Card 
+                      padding="none" 
+                      className={`h-full flex flex-col overflow-hidden transition-all duration-300 ${
+                        ann.is_important 
+                          ? 'border-2 border-error-500 shadow-md shadow-error-500/20 hover:shadow-xl hover:shadow-error-500/30' 
+                          : 'border border-border-light hover:border-primary-300 hover:shadow-lg'
+                      }`}
+                    >
+                      <div className="aspect-video bg-background-warm shrink-0 relative overflow-hidden">
                         {ann.announcement_attachments?.[0]?.file_url ? (
-                          <img src={ann.announcement_attachments[0].file_url} alt={ann.title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                          <img src={ann.announcement_attachments[0].file_url} alt={ann.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Newspaper className="h-5 w-5 text-text-muted opacity-30" />
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                            <Newspaper className="h-12 w-12 text-slate-300" />
                           </div>
                         )}
                         {ann.is_important && (
-                          <div className="absolute top-0 left-0 bg-error-500 text-white text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-br-lg shadow-lg">
-                            Urgente
+                          <div className="absolute top-3 right-3 bg-error-500 text-white text-[10px] font-black uppercase px-2 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse-slow">
+                            <ShieldAlert className="h-3 w-3" /> Urgente
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex-1 p-3 min-w-0 flex flex-col justify-center">
-                        <p className="text-sm font-medium text-text-primary truncate">
-                          {ann.title}
-                        </p>
-                        <p suppressHydrationWarning className="text-xs text-text-muted mt-0.5">
+                      <div className="p-4 flex flex-col flex-1 bg-surface relative">
+                        <p suppressHydrationWarning className="text-[10px] uppercase tracking-widest font-bold text-primary-600 mb-1">
                           {new Date(ann.published_at || ann.created_at).toLocaleDateString('es-AR', {
                             day: 'numeric',
-                            month: 'short',
+                            month: 'long',
                           })}
                         </p>
-                      </div>
-                      <div className="flex items-center px-4">
-                        <ArrowRight className="h-4 w-4 text-text-muted shrink-0" />
+                        <h3 className="text-sm font-bold text-text-primary line-clamp-2 leading-tight">
+                          {ann.title}
+                        </h3>
                       </div>
                     </Card>
                   </Link>
@@ -254,8 +260,8 @@ export default async function DashboardPage() {
         {/* Emergency Contacts Sidebar */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-base font-semibold text-text-primary">
-              Teléfonos Útiles
+            <h2 className="font-display text-xl font-bold text-text-primary flex items-center gap-2">
+              <Phone className="h-6 w-6 text-primary-500" /> Teléfonos Útiles
             </h2>
           </div>
           
@@ -280,6 +286,56 @@ export default async function DashboardPage() {
           </Card>
         </section>
       </div>
+
+      {/* Recent Marketplace */}
+      {marketplaceItems.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-text-primary flex items-center gap-2">
+              <Store className="h-6 w-6 text-primary-500" /> Último en Marketplace
+            </h2>
+            <Link
+              href="/marketplace"
+              className="text-xs text-primary-500 hover:text-primary-700 flex items-center gap-1 transition-colors"
+            >
+              Ver todo <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {marketplaceItems.map((item) => (
+              <Link key={item.id} href="/marketplace" className="group block h-full">
+                <Card padding="none" className="h-full flex flex-col overflow-hidden border border-border-light hover:border-primary-300 hover:shadow-lg transition-all">
+                  <div className="aspect-video bg-background-warm shrink-0 relative overflow-hidden">
+                    {item.marketplace_images?.[0]?.image_url ? (
+                      <img src={item.marketplace_images[0].image_url} alt={item.title} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${item.status === 'sold' ? 'blur-sm grayscale opacity-80' : ''}`} />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center bg-slate-100 ${item.status === 'sold' ? 'blur-sm grayscale opacity-80' : ''}`}>
+                        <Store className="h-8 w-8 text-slate-300" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10">
+                      ${(item.price || 0).toLocaleString('es-AR')}
+                    </div>
+                    {item.status === 'sold' && (
+                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
+                        <span className="bg-error-500/90 text-white font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest rotate-[calc(-15deg)] shadow-xl backdrop-blur-sm border border-error-400">
+                          Vendido
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 flex flex-col flex-1 bg-surface">
+                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold mb-1 truncate">{item.category}</p>
+                    <h3 className="text-sm font-bold text-text-primary line-clamp-2 leading-tight">
+                      {item.title}
+                    </h3>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
